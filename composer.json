@@ -1,0 +1,32 @@
+{
+	"name": "harm-less/file-query",
+	"type": "library",
+	"description": "Allows loading assets across multiple extended but individual applications",
+	"keywords": ["loading", "assets", "autoloading"],
+	"homepage": "http://github.com/harm-less/file-query",
+	"license": "MIT",
+	"authors": [
+		{
+			"name": "Harm van der Werf",
+			"email": "harmvdwerf@gmail.com",
+			"role": "Creator/Developer"
+		}
+	],
+	"require": {
+		"php": ">=5.3.0"
+	},
+	"require-dev": {
+		"phpunit/phpunit": "4.5.*"
+	},
+	"autoload": {
+		"psr-4": {
+			"FQ\\": "src/FQ/"
+		}
+	},
+	"autoload-dev": {
+		"psr-4": {
+			"FQ\\Tests\\": "tests/FQ/Tests",
+			"FQ\\Samples\\": "samples"
+		}
+	}
+}
