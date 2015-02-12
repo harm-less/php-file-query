@@ -7,52 +7,47 @@ class Dir {
 	/**
 	 * @var string Unique
 	 */
-	private $id;
+	private $_id;
 
 	/**
 	 * @var string
 	 */
-	private $dir;
+	private $_dir;
 
 	/**
 	 * @var bool
 	 */
-	private $required;
+	private $_required;
 
 	function __construct($dir, $required = false) {
-		$this->setDir($dir);
+		$this->dir($dir);
 		$this->isRequired($required);
 	}
 
 	/**
 	 * @param string $id
+	 * @return string Returns the ID of the Dir object. If no ID is set, it returns the "dir" variable
 	 */
-	public function setId($id) {
-		$this->id = $id;
-	}
-
-	/**
-	 * @return string Uses dir if the id variable is null
-	 */
-	public function getId() {
-		if ($this->id === null) {
-			return $this->getDir();
+	public function id($id = null) {
+		if (is_string($id)) {
+			$this->_id = $id;
 		}
-		return $this->id;
+
+		if ($this->_id === null) {
+			return $this->dir();
+		}
+		return $this->_id;
 	}
 
 	/**
-	 * @param string $dir
-	 */
-	public function setDir($dir) {
-		$this->dir = $this->savePath($dir);
-	}
-
-	/**
+	 * @param string|null $dir
 	 * @return string
 	 */
-	public function getDir() {
-		return $this->dir;
+	public function dir($dir = null) {
+		if (is_string($dir)) {
+			$this->_dir = $this->parsePath($dir);
+		}
+		return $this->_dir;
 	}
 
 	/**
@@ -60,17 +55,17 @@ class Dir {
 	 * @return bool
 	 */
 	public function isRequired($required = null) {
-		if ($required !== null && is_bool($required)) {
-			$this->required = $required;
+		if (is_bool($required)) {
+			$this->_required = $required;
 		}
-		return $this->required;
+		return $this->_required;
 	}
 
 	/**
 	 * @param string $path
-	 * @return string Returns a save path by removing a potential trailing slash
+	 * @return string Returns a save path by removing a potential trailing slashes
 	 */
-	protected function savePath($path) {
+	protected function parsePath($path) {
 		return rtrim($path, '/\\');
 	}
 

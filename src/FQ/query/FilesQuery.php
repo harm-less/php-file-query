@@ -68,7 +68,7 @@ class FilesQuery {
 	function __construct(Files $files, $childDirs = null) {
 		$this->files = $files;
 
-		$this->addChildDirs($childDirs);
+		//$this->addChildDirs($childDirs);
 
 		$this->reset();
 	}
@@ -152,7 +152,7 @@ class FilesQuery {
 	 * @param null|ChildDir[] $childDirs
 	 */
 	public function addChildDirs($childDirs = null) {
-		$childDirs = ($childDirs == null ? $this->files->childDirs() : (is_array($childDirs) ? $childDirs : array($childDirs)));
+		$childDirs = ($childDirs === null ? $this->files->childDirs() : (is_array($childDirs) ? $childDirs : array($childDirs)));
 		foreach ($childDirs as $childDir) {
 			$this->addChildDir($this->files->getChildDir($childDir));
 		}

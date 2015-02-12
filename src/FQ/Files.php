@@ -2,21 +2,24 @@
 
 namespace FQ;
 
+use FQ\Collection\ChildDirCollection;
+use FQ\Collection\RootDirCollection;
+use FQ\Core\Exceptionable;
 use FQ\Dirs\ChildDir;
 use FQ\Dirs\RootDir;
-use FQ\Exceptions\FileException;
+use FQ\Exceptions\ExceptionableException;
 use FQ\Query\FilesQuery;
 
-class Files {
+class Files extends Exceptionable {
 
 	/**
-	 * @var RootDir[] Array container all root directory locations
+	 * @var RootDirCollection Container with all root directories
 	 *
 	 */
 	private $_rootDirs;
 
 	/**
-	 * @var ChildDir[] Array container all child directories
+	 * @var ChildDirCollection Container with all child directories
 	 *
 	 */
 	private $_childDirs;
@@ -31,29 +34,27 @@ class Files {
 	const DEFAULT_EXTENSION = 'php';
 
 	function __construct() {
-		$this->_rootDirs = array();
-		$this->_childDirs = array();
+		parent::__construct();
+
+		$this->_rootDirs = new RootDirCollection();
+		$this->_childDirs = new ChildDirCollection();
 		$this->_query = new FilesQuery($this);
 	}
 
-	public function query($children = null, $reset = true) {
-		$query = $this->_query;
-		if ($reset) $query->reset();
-		$query->addChildDirs($children);
-		return $query;
+	/**
+	 * @return RootDirCollection
+	 */
+	protected function _rootDirs() {
+		return $this->_rootDirs;
 	}
 
 	/**
 	 * @param RootDir $rootDir
 	 * @param null|int $index
-	 * @throws Exceptions\FileException
-	 * @return RootDir
+	 * @return RootDir|false
 	 */
 	public function addRootDir(RootDir $rootDir, $index = null) {
-		if (is_int($index) && $this->totalRootDirs() < $index) {
-			throw new FileException(sprintf('Provided index "%s" is to high. Total root dirs is %s', $index, $this->totalRootDirs()));
-		}
-		array_splice($this->_rootDirs, $index === null ? $this->totalRootDirs() - 1 : $index, 0, array($rootDir));
+		$rootDir = $this->_rootDirs()->addRootDir($rootDir, $index);
 		$this->isValid();
 		return $rootDir;
 	}
@@ -62,31 +63,22 @@ class Files {
 	 * @return RootDir[]
 	 */
 	public function rootDirs() {
-		return $this->_rootDirs;
+		return $this->_rootDirs()->dirs();
 	}
 
 	/**
 	 * @return int Total root directories
 	 */
 	public function totalRootDirs() {
-		return count($this->_rootDirs);
+		return $this->_rootDirs()->totalDirs();
 	}
 
 	/**
-	 * @param string|RootDir $dir
+	 * @param string|RootDir $rootDir
 	 * @return null|RootDir
 	 */
-	public function getRootDir($dir) {
-		if (is_string($dir)) {
-			$rootId = $this->getRootDirById($dir);
-			if ($rootId !== null) {
-				return $rootId;
-			}
-		}
-		else if (is_object($dir)) {
-			return $dir;
-		}
-		return null;
+	public function getRootDir($rootDir) {
+		return $this->_rootDirs()->getDir($rootDir);
 	}
 
 	/**
@@ -94,38 +86,40 @@ class Files {
 	 * @return null|RootDir
 	 */
 	public function getRootDirById($id) {
-		foreach ($this->rootDirs() as $rootDir) {
-			if ($rootDir->getId() == $id) return $rootDir;
-		}
-		return null;
+		return $this->_rootDirs()->getDirById($id);
 	}
 
 	/**
 	 * @param int $index
-	 * @return RootDir
+	 * @return RootDir|false
 	 */
 	public function getRootDirByIndex($index) {
-		return $this->_rootDirs[$index];
+		return $this->_rootDirs()->getDirByIndex($index);
 	}
 
 	/**
 	 * @return string[]
 	 */
 	public function getRootPaths() {
-		$paths = array();
-		foreach ($this->rootDirs() as $rootDir) {
-			$paths[] = $rootDir->getPath();
-		}
-		return $paths;
+		return $this->_rootDirs()->getPaths();
+	}
+
+
+
+	/**
+	 * @return ChildDirCollection
+	 */
+	protected function _childDirs() {
+		return $this->_childDirs;
 	}
 
 	/**
 	 * @param ChildDir $childDir
 	 * @param null|int $index
-	 * @return ChildDir
+	 * @return ChildDir|false
 	 */
 	public function addChildDir(ChildDir $childDir, $index = null) {
-		array_splice($this->_childDirs, $index === null ? $this->totalChildDirs() - 1 : $index, 0, array($childDir));
+		$childDir = $this->_childDirs()->addChildDir($childDir, $index);
 		$this->isValid();
 		return $childDir;
 	}
@@ -134,50 +128,70 @@ class Files {
 	 * @return ChildDir[]
 	 */
 	public function childDirs() {
-		return $this->_childDirs;
+		return $this->_childDirs()->dirs();
 	}
 
 	/**
 	 * @return int Total child directories
 	 */
 	public function totalChildDirs() {
-		return count($this->_childDirs);
+		return $this->_childDirs()->totalDirs();
 	}
 
 	/**
-	 * @param string|ChildDir $dir
+	 * @param string|ChildDir $childDir
 	 * @return null|ChildDir
 	 */
-	public function getChildDir($dir) {
-		if (is_string($dir)) {
-			$childIndex = array_search($dir, $this->listChildDirNames());
-			if ($childIndex !== false) {
-				return $this->getChildDirByIndex($childIndex);
-			}
-		}
-		else if (is_object($dir)) {
-			return $dir;
-		}
-		return null;
+	public function getChildDir($childDir) {
+		return $this->_childDirs()->getDir($childDir);
+	}
+
+	/**
+	 * @param string $id
+	 * @return null|ChildDir
+	 */
+	public function getChildDirById($id) {
+		return $this->_childDirs()->getDirById($id);
 	}
 
 	/**
 	 * @param int $index
-	 * @return ChildDir
+	 * @return ChildDir|false
 	 */
 	public function getChildDirByIndex($index) {
-		return $this->_childDirs[$index];
+		return $this->_childDirs()->getDirByIndex($index);
 	}
 
 	/**
-	 * @return string[] Get a list of all the child's dir names
+	 * @return string[]
 	 */
-	public function listChildDirNames() {
-		$children = array();
-		foreach ($this->childDirs() as $child) {
-			$children[] = $child->getDir();
+	public function getChildPaths() {
+		return $this->_childDirs()->getPaths();
+	}
+
+	/**
+	 * Checks if the children of the object are still valid
+	 *
+	 * @throws ExceptionableException Thrown when object is not valid
+	 */
+	protected function isValid() {
+		foreach ($this->rootDirs() as $rootDir) {
+			if ($rootDir->isRequired()) {
+				$rootDirPath = $rootDir->dir();
+				if (!is_dir($rootDirPath)) {
+					return $this->_throwError(sprintf('Root directory "%s" does not exist but is required. Please create this directory or turn this requirement off.', $rootDirPath));
+				}
+				foreach ($this->childDirs() as $childDir) {
+					if ($childDir->isRequired()) {
+						$fullPath = $this->getFullPath($rootDir, $childDir);
+						if (!is_dir($fullPath)) {
+							return $this->_throwError(sprintf('Child directory "%s" does not exist in root directory "%s". Please create the directory "%s" or turn this requirement off', $childDir->dir(), $rootDirPath, $fullPath));
+						}
+					}
+				}
+			}
 		}
-		return $children;
+		return true;
 	}
 
 
@@ -188,10 +202,10 @@ class Files {
 	 * @param null|string|ChildDir $childDir
 	 * @return string
 	 */
-	public function getDirPath($rootDir, $childDir) {
+	public function getFullPath($rootDir, $childDir) {
 		$rootDir = $this->getRootDir($rootDir);
 		$child = $this->getChildDir($childDir);
-		return $rootDir->getPath() . '/' . $child->getDir();
+		return $rootDir->dir() . '/' . $child->dir();
 	}
 
 	/**
@@ -252,70 +266,57 @@ class Files {
 	 * @return FilesQuery
 	 */
 	public function getFilePaths($fileName, $children = null) {
-		$query = $this->simpleQuery($fileName, $children);
+		$query = $this->querySimple($fileName, $children);
 		return $query->listPaths();
 	}
 
 	/**
 	 * @param string $fileName
 	 * @param null $children
-	 * @internal param null|string|\TB\Files\Core\ChildDir $childDir
+	 * @internal param null|string|ChildDir $childDir
 	 * @return bool
 	 */
 	public function fileExists($fileName, $children = null) {
-		$query = $this->simpleQuery($fileName, $children);
+		$query = $this->querySimple($fileName, $children);
 		return $query->hasPaths();
 	}
 
 	/**
-	 * @param string $fileName
 	 * @param null|ChildDir|ChildDir[] $children
+	 * @param bool $reset
 	 * @return FilesQuery
 	 */
-	public function simpleQuery($fileName, $children = null) {
-		$query = $this->query($children);
+	public function query($children = null, $reset = true) {
+		$query = $this->_query;
+		if ($reset) $query->reset();
+		$query->addChildDirs($children);
+		return $query;
+	}
+
+	/**
+	 * A basic query wrapper
+	 *
+	 * @param string $fileName
+	 * @param null|ChildDir|ChildDir[] $children
+	 * @param bool $reset
+	 * @return FilesQuery
+	 */
+	public function querySimple($fileName, $children = null, $reset = true) {
+		$query = $this->query($children, $reset);
 		$query->filters(FilesQuery::FILTER_EXISTING);
 		$query->run($fileName);
 		return $query;
 	}
 
-	protected function isValid() {
-		foreach ($this->rootDirs() as $rootDir) {
-			if ($rootDir->isRequired()) {
-				$rootDirPath = $rootDir->getPath();
-				if (!is_dir($rootDirPath)) {
-					throw new FileException(sprintf('Root directory "%s" does not exist but is required. Please create this directory or turn this requirement off.', $rootDirPath));
-				}
-				foreach ($this->childDirs() as $childDir) {
-					if ($childDir->isRequired()) {
-						$childDirPath = $childDir->getDir();
-						$childDirPathFull = $rootDirPath . '/' . $childDirPath;
-						if (!is_dir($childDirPathFull)) {
-							throw new FileException(sprintf('Child directory "%s" does not exist in root directory "%s". Please create the directory "%s" or turn this requirement off', $childDirPath, $rootDirPath, $childDirPathFull));
-						}
-					}
-				}
-			}
-		}
-	}
-
 	/**
-	 * Very simple require function. Ready to be extended when necessary.
+	 * Very simple require function wrapper. Ready to be extended when necessary.
 	 *
 	 * @param string $file
 	 * @return bool
 	 */
-	public function requireOnce($file) {
+	protected function requireOnce($file) {
 		/** @noinspection PhpIncludeInspection */
 		require_once $file;
 		return true;
-	}
-
-	public function echoFiles($paths, $before = '', $after = '') {
-		foreach ($paths as $path) {
-			echo $before;
-			readfile($path);
-			echo $after;
-		}
 	}
 } 

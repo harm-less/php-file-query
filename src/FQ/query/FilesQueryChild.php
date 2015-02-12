@@ -3,6 +3,7 @@
 namespace FQ\Query;
 
 use FQ\Dirs\ChildDir;
+use FQ\Exceptions\FileException;
 use FQ\Files;
 
 class FilesQueryChild {
@@ -108,7 +109,7 @@ class FilesQueryChild {
 				$fileName = $fileName . '.' . $childDir->getDefaultFileExtension();
 			}
 
-			$this->rawRelativePath = '/' . $childDir->getDir() . '/' . $fileName;
+			$this->rawRelativePath = '/' . $childDir->dir() . '/' . $fileName;
 		}
 		return $this->rawRelativePath;
 	}
@@ -116,20 +117,25 @@ class FilesQueryChild {
 
 	public function rawAbsolutePaths() {
 		if (empty($this->rawAbsolutePaths)) {
-			$this->rawAbsolutePaths = $this->_generatePaths('getPath');
+			$this->rawAbsolutePaths = $this->_generatePaths('dir');
 		}
 		return $this->rawAbsolutePaths;
 	}
 	public function rawBasePaths() {
 		if (empty($this->rawBasePaths)) {
-			$this->rawBasePaths = $this->_generatePaths('getBasePath');
+			$this->rawBasePaths = $this->_generatePaths('basePath');
 		}
 		return $this->rawBasePaths;
 	}
 	private function _generatePaths($dirMethod) {
 		$paths = array();
+		$methodExists = null;
 		foreach ($this->files()->rootDirs() as $rootDir) {
-			$paths[$rootDir->getId()] = $rootDir->$dirMethod() . $this->relativePath();
+			if ($methodExists === null) {
+				$methodExists = method_exists($rootDir, $dirMethod);
+				if (!$methodExists) throw new FileException(sprintf('Cannot generate paths because method (%s) is not defined in %s', $dirMethod, get_class($rootDir)));
+			}
+			$paths[$rootDir->id()] = $rootDir->$dirMethod() . $this->relativePath();
 		}
 		return $paths;
 	}
@@ -198,7 +204,7 @@ class FilesQueryChild {
 				$filteredPaths[$filter] = array();
 
 				foreach ($rootDirs as $rootDir) {
-					$rootDirId = $rootDir->getId();
+					$rootDirId = $rootDir->id();
 					switch ($filter) {
 						case FilesQuery::FILTER_NONE :
 							$filteredPaths[$filter][$rootDirId] = true;
@@ -232,17 +238,17 @@ class FilesQueryChild {
 					break;
 				case FilesQuery::LEVELS_ONE :
 					if ($totalPathsExist == 0) {
-						$error = sprintf('At least 1 file must be available for file "%s" in child with an id of "%s". Please create the file in any of these locations: %s', $this->relativePath(), $this->childDir()->getId(), implode($this->rawAbsolutePaths()));
+						$error = sprintf('At least 1 file must be available for file "%s" in child with an id of "%s". Please create the file in any of these locations: %s', $this->relativePath(), $this->childDir()->id(), implode($this->rawAbsolutePaths()));
 					}
 					break;
 				case FilesQuery::LEVELS_LAST :
 					if ($totalPathsExist == 0 || $pathsExist[0] == null) {
-						$error = sprintf('Last file "%s" not found in child "%s" but it is required', $this->relativePath(), $this->childDir()->getId());
+						$error = sprintf('Last file "%s" not found in child "%s" but it is required', $this->relativePath(), $this->childDir()->id());
 					}
 					break;
 				case FilesQuery::LEVELS_ALL :
 					if ($this->totalPathsExist() != $this->files()->totalRootDirs()) {
-						$error = sprintf('All "%s" children must contain a file called "%s".', $this->childDir()->getId(), $this->relativePath());
+						$error = sprintf('All "%s" children must contain a file called "%s".', $this->childDir()->id(), $this->relativePath());
 					}
 					break;
 				default :
