@@ -8,8 +8,6 @@ use FQ\Files;
 use PHPUnit_Framework_TestCase;
 
 /**
- * AbstractKleinTest
- *
  * Base test class for PHP Unit testing
  */
 abstract class AbstractFQTest extends PHPUnit_Framework_TestCase

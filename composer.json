@@ -24,8 +24,8 @@
 		}
 	},
 	"autoload-dev": {
-		"psr-4": {
-			"FQ\\Tests\\": "tests/FQ/Tests",
+		"psr-0": {
+			"FQ\\": "tests",
 			"FQ\\Samples\\": "samples"
 		}
 	}

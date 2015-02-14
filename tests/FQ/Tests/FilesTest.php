@@ -2,6 +2,7 @@
 
 namespace FQ\Tests;
 
+use FQ\Dirs\ChildDir;
 use FQ\Dirs\RootDir;
 use FQ\Files;
 use FQ\Query\FilesQuery;
@@ -126,11 +127,48 @@ class FilesTest extends AbstractFQTest {
 		$this->assertEquals(array(AbstractFQTest::CHILD_DIR_RELATIVE_PATH_FROM_ROOT_DIR), $this->fqApp->getChildPaths());
 	}
 
+	public function testIfFilesIsInvalidAfterAddingRequiredRootDirThatDoNotExist() {
+		$rootDir = $this->_addRootDir(null, $this->_newRootDir('does not exist'));
+		$this->assertFalse($rootDir);
+	}
+	public function testIfFilesIsInvalidAfterAddingRequiredChildDirThatDoNotExist() {
+		$childDir = $this->_addChildDir(null, $this->_newChildDir('does not exist'));
 
-	protected function _addRootDir($index = null) {
-		$rootDir = $this->_newRootDir();
-		$this->fqApp->addRootDir($rootDir, $index);
-		return $rootDir;
+		// because no root dir has been added, this will return the child directory object and not false
+		$this->assertEquals($childDir, $this->fqApp->getChildDirByIndex(0));
+	}
+	public function testIfFilesIsInvalidAfterAddingRequiredRootDirThatExistsAndRequiredChildDirThatDoNotExist() {
+		$rootDir = $this->_addRootDir();
+		$childDir = $this->_addChildDir(null, $this->_newChildDir('does not exist'));
+
+		$this->assertEquals($rootDir, $this->fqApp->getRootDirByIndex(0));
+		$this->assertFalse($childDir);
+	}
+	public function testIfFilesIsInvalidAfterAddingMultipleRequiredRootDirsThatAllExistAndMultipleRequiredChildDirFromWhichTheLastOneDoesNotExist() {
+		$this->_addRootDirs(2);
+		$this->_addChildDir();
+		$childDirInvalid = $this->_addChildDir(null, $this->_newChildDir('does not exist'));
+
+		$this->assertFalse($childDirInvalid);
+	}
+	public function testIfFilesIsInvalidAfterAddingRequiredRootDirThatDoesExistsButThrowErrorsIsSetToTrue() {
+		$this->setExpectedException('FQ\Exceptions\ExceptionableException');
+
+		$this->fqApp->throwErrors(true);
+		$this->_addRootDir(null, $this->_newRootDir('does not exist'));
+	}
+	public function testIfFilesIsInvalidAfterAddingRequiredRootDirThatExistsAndRequiredChildDirThatDoNotExistButThrowErrorsIsSetToTrue() {
+		$this->setExpectedException('FQ\Exceptions\ExceptionableException');
+
+		$this->fqApp->throwErrors(true);
+		$this->_addRootDir();
+		$this->_addChildDir(null, $this->_newChildDir('does not exist'));
+	}
+
+
+	protected function _addRootDir($index = null, RootDir $rootDir = null) {
+		$rootDir = $rootDir !== null ? $rootDir : $this->_newRootDir();
+		return $this->fqApp->addRootDir($rootDir, $index);
 	}
 	protected function _addRootDirs($amount) {
 		while ($amount) {
@@ -139,10 +177,9 @@ class FilesTest extends AbstractFQTest {
 		}
 	}
 
-	protected function _addChildDir($index = null) {
-		$childDir = $this->_newChildDir();
-		$this->fqApp->addChildDir($childDir, $index);
-		return $childDir;
+	protected function _addChildDir($index = null, ChildDir $childDir = null) {
+		$childDir = $childDir !== null ? $childDir : $this->_newChildDir();
+		return $this->fqApp->addChildDir($childDir, $index);
 	}
 	protected function _addChildDirs($amount) {
 		while ($amount) {

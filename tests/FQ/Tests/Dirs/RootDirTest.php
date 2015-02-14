@@ -1,8 +1,9 @@
 <?php
 
-namespace FQ\Tests;
+namespace FQ\Tests\Dirs;
 
 use FQ\Dirs\RootDir;
+use FQ\Tests\AbstractFQTest;
 
 class RootDirTest extends AbstractFQTest {
 

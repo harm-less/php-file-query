@@ -55,8 +55,7 @@ class Files extends Exceptionable {
 	 */
 	public function addRootDir(RootDir $rootDir, $index = null) {
 		$rootDir = $this->_rootDirs()->addRootDir($rootDir, $index);
-		$this->isValid();
-		return $rootDir;
+		return $this->isValid() === true ? $rootDir : false;
 	}
 
 	/**
@@ -120,8 +119,7 @@ class Files extends Exceptionable {
 	 */
 	public function addChildDir(ChildDir $childDir, $index = null) {
 		$childDir = $this->_childDirs()->addChildDir($childDir, $index);
-		$this->isValid();
-		return $childDir;
+		return $this->isValid() === true ? $childDir : false;
 	}
 
 	/**
