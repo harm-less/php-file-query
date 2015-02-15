@@ -106,7 +106,7 @@ class FilesQueryChild {
 			// add a file name extension if one isn't provided
 			$fileNameExploded = explode('.', $fileName);
 			if (count($fileNameExploded) == 1) {
-				$fileName = $fileName . '.' . $childDir->getDefaultFileExtension();
+				$fileName = $fileName . '.' . $childDir->defaultFileExtension();
 			}
 
 			$this->rawRelativePath = '/' . $childDir->dir() . '/' . $fileName;

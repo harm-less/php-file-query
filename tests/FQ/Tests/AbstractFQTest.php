@@ -3,6 +3,7 @@
 namespace FQ\Tests;
 
 use FQ\Dirs\ChildDir;
+use FQ\Dirs\Dir;
 use FQ\Dirs\RootDir;
 use FQ\Files;
 use PHPUnit_Framework_TestCase;
@@ -19,11 +20,15 @@ abstract class AbstractFQTest extends PHPUnit_Framework_TestCase
 	 *
 	 * @type Files
 	 */
-	protected $fqApp;
+	protected $_fqApp;
 
+	protected $_nonPublicMethodObject;
+
+	const DIR_ABSOLUTE_DEFAULT = __DIR__;
+	const DIR_CUSTOM_ID = 'custom_id';
 	const ROOT_DIR_ABSOLUTE_DEFAULT = __DIR__;
 	const ROOT_DIR_ID_CUSTOM = 'rootDir';
-	const CHILD_DIR_RELATIVE_PATH_FROM_ROOT_DIR = 'child';
+	const CHILD_DIR_DEFAULT = 'child';
 
 
 	/**
@@ -36,14 +41,55 @@ abstract class AbstractFQTest extends PHPUnit_Framework_TestCase
 	{
 		// Create a new FQ app,
 		// since we need one pretty much everywhere
-		$this->fqApp = new Files();
+		$this->_fqApp = new Files();
 	}
 
-	protected function _newRootDir($absoluteDir = self::ROOT_DIR_ABSOLUTE_DEFAULT, $basePath = null, $required = true) {
+	protected function nonPublicMethodObject($object = null) {
+		if ($object !== null) {
+			$this->_nonPublicMethodObject = $object;
+		}
+		return $this->_nonPublicMethodObject;
+	}
+
+	protected function callNonPublicMethod($name, $args) {
+		return $this->callObjectWithNonPublicMethod($this->nonPublicMethodObject(), $name, $args);
+	}
+	protected function callObjectWithNonPublicMethod($obj, $name, $args) {
+		$class = new \ReflectionClass($obj);
+		$method = $class->getMethod($name);
+		$method->setAccessible(true);
+
+		$args = is_array($args) ? $args : (array) $args;
+		return $method->invokeArgs($obj, $args);
+	}
+
+	protected function __newDir($dir = self::DIR_ABSOLUTE_DEFAULT, $required = true) {
+		return new Dir($dir, $required);
+	}
+	protected function _newActualDir($required = true) {
+		return $this->__newDir(self::DIR_ABSOLUTE_DEFAULT, $required);
+	}
+	protected function _newFictitiousDir($required = true) {
+		return $this->__newDir('does_not_exist', $required);
+	}
+
+	protected function __newRootDir($absoluteDir = self::ROOT_DIR_ABSOLUTE_DEFAULT, $basePath = null, $required = true) {
 		return new RootDir($absoluteDir, $basePath, $required);
 	}
+	protected function _newActualRootDir($basePath = null, $required = true) {
+		return $this->__newRootDir(self::ROOT_DIR_ABSOLUTE_DEFAULT, $basePath, $required);
+	}
+	protected function _newFictitiousRootDir($required = true) {
+		return $this->__newRootDir('does_not_exist', $required);
+	}
 
-	protected function _newChildDir($relativePathFromRootDirs = self::CHILD_DIR_RELATIVE_PATH_FROM_ROOT_DIR, $required = true) {
+	protected function __newChildDir($relativePathFromRootDirs = self::CHILD_DIR_DEFAULT, $required = true) {
 		return new ChildDir($relativePathFromRootDirs, $required);
+	}
+	protected function _newActualChildDir($required = true) {
+		return $this->__newChildDir(self::CHILD_DIR_DEFAULT, $required);
+	}
+	protected function _newFictitiousChildDir($required = true) {
+		return $this->__newChildDir('does_not_exist', $required);
 	}
 }

@@ -19,11 +19,11 @@ class ChildDir extends Dir {
 	 * @param null $extension If this value is not null and a string, it will set it as a new default file extension
 	 * @return null|string Return the default file extensions. When nothing has been supplied, it will return the constant from Files::DEFAULT_EXTENSION
 	 */
-	public function getDefaultFileExtension($extension = null) {
+	public function defaultFileExtension($extension = null) {
 		if (is_string($extension)) {
 			$this->defaultFileExtension = $extension;
 		}
-		if ($this->defaultFileExtension === null) {
+		if ($this->defaultFileExtension === null || $this->defaultFileExtension === '') {
 			return Files::DEFAULT_EXTENSION;
 		}
 		return $this->defaultFileExtension;

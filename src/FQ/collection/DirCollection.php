@@ -1,6 +1,6 @@
 <?php
 
-namespace FQ\Collection;
+namespace FQ\Collections\Dirs;
 
 use FQ\Core\Exceptionable;
 use FQ\Dirs\Dir;
@@ -15,15 +15,13 @@ class DirCollection extends Exceptionable {
 
 	function __construct() {
 		parent::__construct();
-
-
 	}
 
 	/**
 	 * @param Dir $dir
 	 * @param null|int $index
 	 * @throws ExceptionableException
-	 * @return Dir
+	 * @return Dir|false
 	 */
 	public function addDir(Dir $dir, $index = null) {
 		$totalDirs = $this->totalDirs();
@@ -34,12 +32,16 @@ class DirCollection extends Exceptionable {
 		return $dir;
 	}
 
+	/**
+	 * @param mixed $dir
+	 * @return Dir|null
+	 */
 	public function getDir($dir) {
 		if (is_string($dir)) {
-			$dirObj = $this->getDirById($dir);
-			if ($dirObj !== null) {
-				return $dirObj;
-			}
+			return $this->getDirById($dir);
+		}
+		else if (is_int($dir)) {
+			return $this->getDirByIndex($dir);
 		}
 		else if (is_object($dir) && $this->isInCollection($dir)) {
 			return $dir;

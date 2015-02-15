@@ -33,7 +33,7 @@ class Dir {
 			$this->_id = $id;
 		}
 
-		if ($this->_id === null) {
+		if ($this->_id === null || $this->_id === '') {
 			return $this->dir();
 		}
 		return $this->_id;
