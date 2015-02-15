@@ -11,63 +11,71 @@ class FilesQueryChild {
 	/**
 	 * @var FilesQuery
 	 */
-	private $filesQuery;
+	private $_filesQuery;
 
 	/**
 	 * @var ChildDir
 	 */
-	private $childDir;
+	private $_childDir;
 
 	/**
 	 * @var string
 	 */
-	private $rawRelativePath;
+	private $_rawRelativePath;
 
 	/**
 	 * @var string[]
 	 */
-	private $rawAbsolutePaths;
+	private $_rawAbsolutePaths;
 
 	/**
 	 * @var string[]
 	 */
-	private $rawBasePaths;
+	private $_rawBasePaths;
 
 	/**
 	 * @var bool[]
 	 */
-	private $pathsExist;
+	private $_pathsExist;
 
-	private $filteredPathsCashed;
+	private $_filteredPathsCashed;
 
 	/**
 	 * @var string[]
 	 */
-	private $filteredRawPaths;
+	private $_filteredRawPaths;
 	/**
 	 * @var string[]
 	 */
-	private $filteredAbsolutePaths;
+	private $_filteredAbsolutePaths;
 	/**
 	 * @var string[]
 	 */
-	private $filteredBasePaths;
+	private $_filteredBasePaths;
 
 	/**
 	 * @var string
 	 */
-	private $error;
+	private $_error;
+
+	private $_invalidated;
 
 	function __construct(FilesQuery $filesQuery, ChildDir $childDir) {
-		$this->filesQuery = $filesQuery;
-		$this->childDir = $childDir;
+		$this->_filesQuery = $filesQuery;
+		$this->_childDir = $childDir;
+	}
+
+	public function reset() {
+		$this->_error = null;
+
+
 	}
 
 	/**
 	 * @return FilesQuery
 	 */
 	public function query() {
-		return $this->filesQuery;
+		return $this->_filesQuery;
 	}
 
 	/**
@@ -81,25 +89,25 @@ class FilesQueryChild {
 	 * @return ChildDir
 	 */
 	public function childDir() {
-		return $this->childDir;
+		return $this->_childDir;
 	}
 
 	public function fileName() {
 		return $this->query()->queriedFileName();
 	}
 
-	private function _error($error) {
-		return $this->error = $error;
+	private function _setError($error) {
+		return $this->_error = $error;
 	}
 	public function error() {
-		return $this->error;
+		return $this->_error;
 	}
 	public function hasError() {
-		return $this->error !== null;
+		return $this->_error !== null;
 	}
 
 	public function relativePath() {
-		if (empty($this->rawRelativePath)) {
+		if (empty($this->_rawRelativePath)) {
 			$childDir = $this->childDir();
 			$fileName = $this->fileName();
 
@@ -109,23 +117,23 @@ class FilesQueryChild {
 				$fileName = $fileName . '.' . $childDir->defaultFileExtension();
 			}
 
-			$this->rawRelativePath = '/' . $childDir->dir() . '/' . $fileName;
+			$this->_rawRelativePath = '/' . $childDir->dir() . '/' . $fileName;
 		}
-		return $this->rawRelativePath;
+		return $this->_rawRelativePath;
 	}
 
 
 	public function rawAbsolutePaths() {
-		if (empty($this->rawAbsolutePaths)) {
-			$this->rawAbsolutePaths = $this->_generatePaths('dir');
+		if (empty($this->_rawAbsolutePaths)) {
+			$this->_rawAbsolutePaths = $this->_generatePaths('dir');
 		}
-		return $this->rawAbsolutePaths;
+		return $this->_rawAbsolutePaths;
 	}
 	public function rawBasePaths() {
-		if (empty($this->rawBasePaths)) {
-			$this->rawBasePaths = $this->_generatePaths('basePath');
+		if (empty($this->_rawBasePaths)) {
+			$this->_rawBasePaths = $this->_generatePaths('basePath');
 		}
-		return $this->rawBasePaths;
+		return $this->_rawBasePaths;
 	}
 	private function _generatePaths($dirMethod) {
 		$paths = array();
@@ -142,7 +150,7 @@ class FilesQueryChild {
 
 
 	public function filteredRawPaths() {
-		if (empty($this->filteredRawPaths)) {
+		if (empty($this->_filteredRawPaths)) {
 
 			$filterCache = $this->_cachedFilterPaths();
 
@@ -154,21 +162,21 @@ class FilesQueryChild {
 				}
 			}
 
-			$this->filteredRawPaths = $paths;
+			$this->_filteredRawPaths = $paths;
 		}
-		return $this->filteredRawPaths;
+		return $this->_filteredRawPaths;
 	}
 	public function filteredAbsolutePaths() {
-		if (empty($this->filteredAbsolutePaths)) {
-			$this->filteredAbsolutePaths = $this->_filterPaths($this->rawAbsolutePaths());
+		if (empty($this->_filteredAbsolutePaths)) {
+			$this->_filteredAbsolutePaths = $this->_filterPaths($this->rawAbsolutePaths());
 		}
-		return $this->filteredAbsolutePaths;
+		return $this->_filteredAbsolutePaths;
 	}
 	public function filteredBasePaths() {
-		if (empty($this->filteredBasePaths)) {
-			$this->filteredBasePaths = $this->_filterPaths($this->rawBasePaths());
+		if (empty($this->_filteredBasePaths)) {
+			$this->_filteredBasePaths = $this->_filterPaths($this->rawBasePaths());
 		}
-		return $this->filteredBasePaths;
+		return $this->_filteredBasePaths;
 	}
 	private function _filterPaths($paths) {
 		foreach ($this->_cachedFilterPaths() as $filter) {
@@ -181,20 +189,20 @@ class FilesQueryChild {
 
 
 	public function pathsExist() {
-		if (empty($this->pathsExist)) {
+		if (empty($this->_pathsExist)) {
 
 			$arr = array();
 			foreach ($this->rawAbsolutePaths() as $rootDirId => $absolutePath) {
 				$arr[$rootDirId] = file_exists($absolutePath);
 			}
-			$this->pathsExist = $arr;
+			$this->_pathsExist = $arr;
 		}
-		return $this->pathsExist;
+		return $this->_pathsExist;
 	}
 
-	private function _cachedFilterPaths($filters = null) {
-		if (empty($this->filteredPathsCashed)) {
-			$filters = (array) ($filters === null ? $this->query()->getFilters() : $filters);
+	private function _cachedFilterPaths() {
+		if (empty($this->_filteredPathsCashed)) {
+			$filters = $this->query()->filters();
 
 			$rootDirs = $this->files()->rootDirs();
 			$pathsExist = $this->pathsExist();
@@ -215,23 +223,23 @@ class FilesQueryChild {
 					}
 				}
 			}
-			$this->filteredPathsCashed = $filteredPaths;
+			$this->_filteredPathsCashed = $filteredPaths;
 		}
-		return $this->filteredPathsCashed;
+		return $this->_filteredPathsCashed;
 	}
 
-	public function totalPathsExist() {
+	public function totalExistingPaths() {
 		return count(array_filter($this->pathsExist()));
 	}
 
 	public function meetsRequirements() {
 
 		$pathsExist = $this->pathsExist();
-		$totalPathsExist = $this->totalPathsExist();
+		$totalPathsExist = $this->totalExistingPaths();
 
 		$error = null;
 
-		$requiredLevelsArr = (array) $this->query()->requirements();
+		$requiredLevelsArr = $this->query()->requirements();
 		foreach ($requiredLevelsArr as $requiredLevel) {
 			switch ($requiredLevel) {
 				case FilesQuery::LEVELS_NONE :
@@ -239,25 +247,28 @@ class FilesQueryChild {
 				case FilesQuery::LEVELS_ONE :
 					if ($totalPathsExist == 0) {
 						$error = sprintf('At least 1 file must be available for file "%s" in child with an id of "%s". Please create the file in any of these locations: %s', $this->relativePath(), $this->childDir()->id(), implode($this->rawAbsolutePaths()));
+						break 2;
 					}
 					break;
 				case FilesQuery::LEVELS_LAST :
 					if ($totalPathsExist == 0 || $pathsExist[0] == null) {
 						$error = sprintf('Last file "%s" not found in child "%s" but it is required', $this->relativePath(), $this->childDir()->id());
+						break 2;
 					}
 					break;
 				case FilesQuery::LEVELS_ALL :
-					if ($this->totalPathsExist() != $this->files()->totalRootDirs()) {
+					if ($this->totalExistingPaths() != $this->files()->totalRootDirs()) {
 						$error = sprintf('All "%s" children must contain a file called "%s".', $this->childDir()->id(), $this->relativePath());
+						break 2;
 					}
 					break;
 				default :
 					$error = sprintf('Unknown requirement level "%s"', $requiredLevel);
-					break;
+					break 2;
 			}
 		}
 
-		$this->_error($error);
+		$this->_setError($error);
 
 		return $error === null;
 	}

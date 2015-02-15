@@ -2,53 +2,60 @@
 
 namespace FQ\Query;
 
+use FQ\Core\Exceptionable;
 use FQ\Dirs\ChildDir;
-use FQ\Exceptions\FileException;
+use FQ\Exceptions\ExceptionableException;
 use FQ\Files;
 
-class FilesQuery {
+class FilesQuery extends Exceptionable {
 
 	/**
 	 * @var Files
 	 */
-	private $files;
+	private $_files;
 
 	/**
 	 * @var ChildDir[]
 	 */
-	private $childDirs;
+	private $_childDirs;
 
 	/**
 	 * @var FilesQueryChild[]
 	 */
-	private $queryChildDirs;
+	private $_cachedQueryChildren;
 
 	/**
-	 * @var bool Indicator if the query have been run or not
+	 * @var FilesQueryChild[]
 	 */
-	private $hasRun;
+	private $_currentQueryChildren;
 
 	/**
-	 * @var string Indicator if the query have been run or not
+	 * @var bool Indicator if the query has run or not
 	 */
-	private $queriedFileName;
+	private $_hasRun;
+
+	/**
+	 * @var string Active file name in the latest query
+	 */
+	private $_queriedFileName;
 
 	/**
 	 * @var bool Reverse the query
 	 */
-	private $reverse;
-
-	private $filters;
+	private $_reverse;
 
 	/**
-	 * @var bool When set to true, the query will throw an error if one occurs
+	 * @var string[] Filters of the query
 	 */
-	private $throwErrors;
-
-	private $requirements;
+	private $_filters;
 
 	/**
-	 * Constants determining requirement checking for a query
+	 * @var string[] Requirements of the query
+	 */
+	private $_requirements;
+
+	/**
+	 * Constants determining requirement checking for the query
 	 */
 	const LEVELS_NONE = 'levels_none';
 	const LEVELS_ONE = 'levels_one';
@@ -63,27 +70,22 @@ class FilesQuery {
 
 	/**
 	 * @param Files $files
-	 * @param null|string|string[]|ChildDir|ChildDir[] $childDirs
 	 */
-	function __construct(Files $files, $childDirs = null) {
-		$this->files = $files;
-
-		//$this->addChildDirs($childDirs);
-
+	function __construct(Files $files) {
+		$this->_files = $files;
 		$this->reset();
 	}
 
 	public function reset() {
-		$this->childDirs = array();
-		$this->queryChildDirs = array();
+		$this->_childDirs = array();
+		$this->_currentQueryChildren = array();
 
-		$this->queriedFileName = null;
-		$this->throwErrors = true;
-		$this->requirements = self::LEVELS_ONE;
-		$this->filters = self::FILTER_EXISTING;
-		$this->reverse = false;
+		$this->requirements(self::LEVELS_ONE);
+		$this->filters(self::FILTER_EXISTING);
 
-		$this->hasRun = false;
+		$this->_queriedFileName = null;
+		$this->_reverse = false;
+		$this->_hasRun = false;
 	}
 
 	/**
@@ -92,94 +94,129 @@ class FilesQuery {
 	 */
 	public function requirements($requirements = null) {
 		if ($requirements !== null) {
-			$this->requirements = $requirements;
+			$this->_requirements = $requirements !== null ? (!is_array($requirements) ? (array) $requirements : $requirements) : null;
 		}
-		return $this->requirements !== null ? (array) $this->requirements : null;
+		return $this->_requirements;
+	}
+
+	/**
+	 * @param $requirement
+	 * @return bool Return true when added. Returns false when it was already part of the requirements
+	 */
+	public function addRequirement($requirement) {
+		if (!$this->hasRequirement($requirement)) {
+			$this->_requirements[] = $requirement;
+			return true;
+		}
+		return false;
+	}
+
+	/**
+	 * @param $requirement
+	 * @return bool Return true when added. Returns false when it was already part of the requirements
+	 */
+	public function removeRequirement($requirement) {
+		if ($this->hasRequirement($requirement)) {
+			if (($key = array_search($requirement, $this->_requirements)) !== false) {
+				unset($this->_requirements[$key]);
+			}
+			return true;
+		}
+		return false;
+	}
+
+	/**
+	 * @param string $requirement
+	 * @return bool
+	 */
+	public function hasRequirement($requirement) {
+		return in_array($requirement, $this->requirements());
+	}
+
+	/**
+	 * @return bool
+	 */
+	public function hasRequirements() {
+		$requirements = $this->requirements();
+		return count($requirements) === 0 || (count($requirements) == 1 && $requirements[0] !== self::LEVELS_NONE);
 	}
 
 	/**
 	 * @param bool $reverse Reverse query results
 	 */
 	public function reverse($reverse) {
-		$this->reverse = $reverse;
+		$this->_reverse = $reverse;
 	}
 
 	/**
 	 * @param string|string[] $filters
+	 * @return string[]
 	 */
-	public function filters($filters = self::FILTER_EXISTING) {
-		$this->filters = (is_string($filters) ? (array) $filters : $filters);
-	}
-
-	/**
-	 * @param string $fileName The name of the file the query will be executing
-	 * @return null|string[]
-	 * @throws FileException
-	 */
-	public function run($fileName) {
-		$this->queriedFileName = $fileName;
-
-		$this->queryChildDirs = array();
-
-		foreach ($this->childDirs() as $childDir) {
-
-			$queryChild = new FilesQueryChild($this, $childDir);
-
-			if (!$queryChild->meetsRequirements() && $this->throwErrors()) {
-				throw new FileException($queryChild->error());
-			}
-
-			$this->queryChildDirs[] = $queryChild;
+	public function filters($filters = null) {
+		if ($filters !== null) {
+			$this->_filters = is_string($filters) ? (array) $filters : $filters;
 		}
-
-		$this->hasRun = true;
-
-		return $this->listPaths();
+		return $this->_filters;
 	}
 
 	/**
 	 * @param ChildDir $childDir
-	 * @throws FileException
+	 * @return FilesQueryChild
+	 */
+	protected function _getQueryChild(ChildDir $childDir) {
+		if (isset($this->_cachedQueryChildren[$childDir->id()])) {
+			return $this->_cachedQueryChildren[$childDir->id()];
+		}
+		else {
+			return new FilesQueryChild($this, $childDir);
+		}
+	}
+
+	/**
+	 * @param ChildDir $childDir
+	 * @return false|ChildDir
+	 * @throws ExceptionableException
 	 */
 	public function addChildDir(ChildDir $childDir) {
 		if (!$this->isValidChildDir($childDir)) {
-			throw new FileException('Child dir is not part of the Files instance provided to this query');
+			return $this->_throwError('Child dir is not part of the Files instance provided to this query');
 		}
-		array_push($this->childDirs, $childDir);
+		array_push($this->_childDirs, $childDir);
+		return $childDir;
 	}
 
 	/**
-	 * @param null|ChildDir[] $childDirs
+	 * @param null|string|string[]|ChildDir|ChildDir[] $childDirs
 	 */
 	public function addChildDirs($childDirs = null) {
-		$childDirs = ($childDirs === null ? $this->files->childDirs() : (is_array($childDirs) ? $childDirs : array($childDirs)));
+		$childDirs = ($childDirs === null ? $this->_files->childDirs() : (is_array($childDirs) ? $childDirs : array($childDirs)));
 		foreach ($childDirs as $childDir) {
-			$this->addChildDir($this->files->getChildDir($childDir));
+			$this->addChildDir($this->_files->getChildDir($childDir));
 		}
 	}
 
 	/**
 	 * @param ChildDir $childDir
-	 * @return bool If a ChildDir is provided, it will check if it is part of the Files instance
+	 * @return bool If a ChildDir exists in the Files instance it will return true, otherwise it will return false
 	 */
 	public function isValidChildDir(ChildDir $childDir) {
-		return $childDir !== null && in_array($childDir, $this->files()->childDirs());
+		return $this->files()->isChildDirOf($childDir);
 	}
 
 	public function queriedFileName() {
-		return $this->queriedFileName;
+		return $this->_queriedFileName;
 	}
 
 	public function queryChildDirs() {
-		return $this->queryChildDirs;
+		return $this->_currentQueryChildren;
 	}
 
 	public function childDirs() {
-		return $this->childDirs;
+		return $this->_childDirs;
 	}
 
 	public function files() {
-		return $this->files;
+		return $this->_files;
 	}
 
 	public function rootDirs() {
@@ -187,30 +224,41 @@ class FilesQuery {
 	}
 
 	public function hasRun() {
-		return (bool) $this->hasRun;
+		return $this->_hasRun;
 	}
 	public function isReversed() {
-		return (bool) $this->reverse;
-	}
-	public function hasRequirements() {
-		$requirements = $this->requirements();
-		return (bool) $this->requirements !== null && $this->requirements !== self::LEVELS_NONE && (is_array($requirements) && count($requirements) == 1 && $requirements[0] !== self::LEVELS_NONE);
-	}
-	public function throwErrors() {
-		return (bool) $this->throwErrors;
+		return $this->_reverse;
 	}
 
 	public function _hasRun() {
 		if (!$this->hasRun()) {
-			throw new FileException('You must first call the "run" method before you can retrieve query information');
+			return $this->_throwError('You must first call the "run" method before you can retrieve query information');
 		}
+		return true;
 	}
 
 	/**
-	 * @return string[]
+	 * @param string $fileName The name of the file the query will be executing
+	 * @return null|string[]
+	 * @throws ExceptionableException
 	 */
-	public function getFilters() {
-		return $this->filters;
+	public function run($fileName) {
+		$this->_queriedFileName = $fileName;
+		$this->_currentQueryChildren = array();
+		foreach ($this->childDirs() as $childDir) {
+			$this->_currentQueryChildren[$childDir->id()] = $this->processQueryChild($childDir);
+		}
+		$this->_hasRun = true;
+		return $this->listPaths();
+	}
+
+	protected function processQueryChild(ChildDir $childDir) {
+		$queryChild = $this->_getQueryChild($childDir);
+		$queryChild->reset();
+		if (!$queryChild->meetsRequirements()) {
+			return $this->_throwError($queryChild->error());
+		}
+		return $queryChild;
 	}
 
 	/**
@@ -219,11 +267,16 @@ class FilesQuery {
 	 * @return null|string[]
 	 */
 	public function listPaths() {
-		$this->_hasRun();
+		if (!$this->_hasRun()) {
+			return false;
+		}
 
 		$paths = array();
 		foreach($this->queryChildDirs() as $childQuery) {
-			$paths = array_merge($paths, $childQuery->filteredAbsolutePaths());
+			// in case one of the child queries failed and returned false, do not try to add this to the list
+			if ($childQuery !== false) {
+				$paths = array_merge($paths, $childQuery->filteredAbsolutePaths());
+			}
 		}
 		return $paths;
 	}
@@ -234,7 +287,9 @@ class FilesQuery {
 	 * @return string[]
 	 */
 	public function listBasePaths() {
-		$this->_hasRun();
+		if (!$this->_hasRun()) {
+			return false;
+		}
 
 		$paths = array();
 		foreach($this->queryChildDirs() as $childQuery) {

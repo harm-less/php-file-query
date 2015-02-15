@@ -8,6 +8,6 @@ $autoloader = require __DIR__ . '/vendor/autoload.php';
 $autoloader->add('FQ\\Samples\\', __DIR__);
 
 $sampleSimple = new \FQ\Samples\Simple();
-echo $sampleSimple->filePath('File1', 'child1');
+print_r($sampleSimple->queryFile1FromChild1());
 
 ?>

@@ -66,6 +66,14 @@ class Files extends Exceptionable {
 	}
 
 	/**
+	 * @param RootDir $rootDir RootDir that will be checked
+	 * @return bool Returns true if RootDir is part of this files instance
+	 */
+	public function isRootDirOf(RootDir $rootDir) {
+		return $this->_rootDirs()->isInCollection($rootDir);
+	}
+
+	/**
 	 * @return int Total root directories
 	 */
 	public function totalRootDirs() {
@@ -127,6 +135,14 @@ class Files extends Exceptionable {
 	 */
 	public function childDirs() {
 		return $this->_childDirs()->dirs();
+	}
+
+	/**
+	 * @param ChildDir $childDir Dir that will be checked
+	 * @return bool Returns true if dir is part of this files instance
+	 */
+	public function isChildDirOf(ChildDir $childDir) {
+		return $this->_childDirs()->isInCollection($childDir);
 	}
 
 	/**

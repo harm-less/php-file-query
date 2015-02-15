@@ -5,7 +5,7 @@ namespace FQ\Tests\Collections;
 use FQ\Collections\Dirs\DirCollection;
 use FQ\Dirs\Dir;
 
-class DirCollectionTest extends AbstractDirCollectionTest {
+class DirCollectionTest extends AbstractDirCollectionTests {
 
 	public function testCreateNewDirCollection() {
 		$dirCollection = new DirCollection();

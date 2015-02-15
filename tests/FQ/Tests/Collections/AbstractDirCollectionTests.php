@@ -5,7 +5,7 @@ namespace FQ\Tests\Collections;
 use FQ\Collections\Dirs\DirCollection;
 use FQ\Tests\AbstractFQTest;
 
-class AbstractDirCollectionTest extends AbstractFQTest {
+class AbstractDirCollectionTests extends AbstractFQTest {
 
 	protected $_dirCollection;
 

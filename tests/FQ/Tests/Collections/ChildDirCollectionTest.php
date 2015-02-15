@@ -2,11 +2,9 @@
 
 namespace FQ\Tests\Collections;
 
-use FQ\Collections\Dirs\DirCollection;
 use FQ\Collections\Dirs\ChildDirCollection;
-use FQ\Dirs\Dir;
 
-class ChildDirCollectionTest extends AbstractDirCollectionTest {
+class ChildDirCollectionTest extends AbstractDirCollectionTests {
 
 	/**
 	 * @return ChildDirCollection
