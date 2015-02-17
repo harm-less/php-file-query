@@ -10,7 +10,8 @@ class Simple extends SampleBootstrapper {
 	function __construct() {
 		parent::__construct('simple');
 
-		$this->addRootDir(new RootDir($this->root . 'root'));
+		$this->addRootDir(new RootDir($this->root . 'root1'));
+		$this->addRootDir(new RootDir($this->root . 'root2'));
 
 		$this->addChildDir(new ChildDir('child1'));
 		$this->addChildDir(new ChildDir('child2'));

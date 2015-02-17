@@ -8,6 +8,18 @@ $autoloader = require __DIR__ . '/vendor/autoload.php';
 $autoloader->add('FQ\\Samples\\', __DIR__);
 
 $sampleSimple = new \FQ\Samples\Simple();
-print_r($sampleSimple->queryFile1FromChild1());
+//print_r($sampleSimple->queryFile1FromChild1());
+
+$builder = new \FQ\Query\FilesQueryBuilder($sampleSimple);
+pr($builder->run('File1')->listPaths());
+
+
+
+
+
+function pr($var) {
+	$template = php_sapi_name() !== 'cli' ? '<pre>%s</pre>' : "\n%s\n";
+	printf($template, str_replace(' ', '&nbsp;', print_r($var, true)));
+}
 
 ?>

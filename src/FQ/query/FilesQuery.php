@@ -161,19 +161,6 @@ class FilesQuery extends Exceptionable {
 
 	/**
 	 * @param ChildDir $childDir
-	 * @return FilesQueryChild
-	 */
-	protected function _getQueryChild(ChildDir $childDir) {
-		if (isset($this->_cachedQueryChildren[$childDir->id()])) {
-			return $this->_cachedQueryChildren[$childDir->id()];
-		}
-		else {
-			return new FilesQueryChild($this, $childDir);
-		}
-	}
-
-	/**
-	 * @param ChildDir $childDir
 	 * @return false|ChildDir
 	 * @throws ExceptionableException
 	 */
@@ -189,7 +176,7 @@ class FilesQuery extends Exceptionable {
 	 * @param null|string|string[]|ChildDir|ChildDir[] $childDirs
 	 */
 	public function addChildDirs($childDirs = null) {
-		$childDirs = ($childDirs === null ? $this->_files->childDirs() : (is_array($childDirs) ? $childDirs : array($childDirs)));
+		$childDirs = ($childDirs === null || empty($childDirs) ? $this->_files->childDirs() : (is_array($childDirs) ? $childDirs : array($childDirs)));
 		foreach ($childDirs as $childDir) {
 			$this->addChildDir($this->_files->getChildDir($childDir));
 		}
@@ -256,9 +243,22 @@ class FilesQuery extends Exceptionable {
 		$queryChild = $this->_getQueryChild($childDir);
 		$queryChild->reset();
 		if (!$queryChild->meetsRequirements()) {
-			return $this->_throwError($queryChild->error());
+			return false;
 		}
 		return $queryChild;
+	}
+
+	/**
+	 * @param ChildDir $childDir
+	 * @return FilesQueryChild
+	 */
+	protected function _getQueryChild(ChildDir $childDir) {
+		if (isset($this->_cachedQueryChildren[$childDir->id()])) {
+			return $this->_cachedQueryChildren[$childDir->id()];
+		}
+		else {
+			return new FilesQueryChild($this, $childDir);
+		}
 	}
 
 	/**

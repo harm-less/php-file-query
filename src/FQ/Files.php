@@ -317,7 +317,6 @@ class Files extends Exceptionable {
 	 */
 	public function querySimple($fileName, $children = null, $reset = true) {
 		$query = $this->query($children, $reset);
-		$query->filters(FilesQuery::FILTER_EXISTING);
 		$query->run($fileName);
 		return $query;
 	}
