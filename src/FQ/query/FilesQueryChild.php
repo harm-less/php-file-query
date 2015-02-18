@@ -3,11 +3,10 @@
 namespace FQ\Query;
 
 use FQ\Dirs\ChildDir;
-use FQ\Exceptions\FileException;
+use FQ\Exceptions\FileQueryException;
 use FQ\Files;
-use FQ\Core\Exceptionable;
 
-class FilesQueryChild extends Exceptionable {
+class FilesQueryChild {
 
 	/**
 	 * @var FilesQuery
@@ -144,6 +143,7 @@ class FilesQueryChild extends Exceptionable {
 	 * Quick-and-dirty method to generate paths based a method name from a root directory
 	 *
 	 * @param $dirMethod
+	 * @throws FileQueryException
 	 * @return array
 	 */
 	private function _generatePaths($dirMethod) {
@@ -153,7 +153,7 @@ class FilesQueryChild extends Exceptionable {
 			if ($methodExists === null) {
 				$methodExists = method_exists($rootDir, $dirMethod);
 				if (!$methodExists) {
-					$this->_throwError(sprintf('Cannot generate paths because method (%s) is not defined in %s', $dirMethod, get_class($rootDir)));
+					throw new FileQueryException(sprintf('Cannot generate paths because method (%s) is not defined in %s', $dirMethod, get_class($rootDir)));
 				}
 			}
 			$paths[$rootDir->id()] = $rootDir->$dirMethod() . $this->relativePath();
@@ -256,55 +256,5 @@ class FilesQueryChild extends Exceptionable {
 	 */
 	public function totalExistingPaths() {
 		return count(array_filter($this->pathsExist()));
-	}
-
-	/**
-	 * Checks if the query meets all its requirements
-	 *
-	 * @return bool
-	 */
-	public function meetsRequirements() {
-		$requiredLevels = $this->query()->requirements();
-
-		// if there are no requirements it certainly is valid and it can be returned immediately
-		if (count($requiredLevels) === 0) {
-			return true;
-		}
-
-		foreach ($requiredLevels as $requiredLevel) {
-			if ($this->meetsRequirement($requiredLevel) === false) {
-				return false;
-			}
-		}
-		return true;
-	}
-
-	/**
-	 * @param string $requirement
-	 * @param bool $throwError
-	 * @return bool
-	 */
-	public function meetsRequirement($requirement, $throwError = true) {
-		switch ($requirement) {
-			case FilesQuery::LEVELS_ONE :
-				if ($this->totalExistingPaths() == 0) {
-					return $this->_throwError(sprintf('At least 1 file must be available for file "%s" in child with an id of "%s". Please create the file in any of these locations: %s', $this->relativePath(), $this->childDir()->id(), implode($this->rawAbsolutePaths())), $throwError);
-				}
-				break;
-			case FilesQuery::LEVELS_LAST :
-				$pathsExist = $this->pathsExist();
-				if ($this->totalExistingPaths() === 0 || $pathsExist[0] == null) {
-					return $this->_throwError(sprintf('Last file "%s" not found in child "%s" but it is required', $this->relativePath(), $this->childDir()->id()), $throwError);
-				}
-				break;
-			case FilesQuery::LEVELS_ALL :
-				if ($this->totalExistingPaths() != $this->files()->totalRootDirs()) {
-					return $this->_throwError(sprintf('All "%s" children must contain a file called "%s".', $this->childDir()->id(), $this->relativePath()), $throwError);
-				}
-				break;
-			default :
-				return $this->_throwError(sprintf('Unknown requirement level "%s"', $requirement), $throwError);
-		}
-		return true;
 	}
 } 

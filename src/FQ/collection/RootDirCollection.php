@@ -4,14 +4,9 @@ namespace FQ\Collections\Dirs;
 
 use FQ\Dirs\Dir;
 use FQ\Dirs\RootDir;
-use FQ\Exceptions\ExceptionableException;
-use FQ\Exceptions\FileException;
+use FQ\Exceptions\FilesException;
 
 class RootDirCollection extends DirCollection {
-
-	function __construct() {
-		parent::__construct();
-	}
 
 	/**
 	 * Wrapper function for adding child dirs
@@ -29,11 +24,11 @@ class RootDirCollection extends DirCollection {
 	 *
 	 * @param Dir $dir
 	 * @param null $index
-	 * @return FileException
-	 * @throws FileException
+	 * @return FilesException
+	 * @throws FilesException
 	 */
 	public function addDir(Dir $dir, $index = null) {
-		throw new FileException('Use addRootDir() to add directories');
+		throw new FilesException('Use addRootDir() to add directories');
 	}
 
 	/**
@@ -54,7 +49,7 @@ class RootDirCollection extends DirCollection {
 
 	/**
 	 * @param int $index
-	 * @throws ExceptionableException
+	 * @throws DirCollectionException
 	 * @return RootDir
 	 */
 	public function getDirByIndex($index) {

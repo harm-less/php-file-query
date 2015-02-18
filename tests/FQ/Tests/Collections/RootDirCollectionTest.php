@@ -41,7 +41,7 @@ class RootDirCollectionTest extends AbstractDirCollectionTests {
 	}
 
 	public function testAddDirIsDisabled() {
-		$this->setExpectedException('FQ\Exceptions\FileException', 'Use addRootDir() to add directories');
+		$this->setExpectedException('FQ\Exceptions\FilesException', 'Use addRootDir() to add directories');
 		$collection = $this->dirCollection();
 		$collection->addDir($this->_createNewDir());
 	}

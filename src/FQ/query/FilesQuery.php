@@ -2,12 +2,11 @@
 
 namespace FQ\Query;
 
-use FQ\Core\Exceptionable;
 use FQ\Dirs\ChildDir;
-use FQ\Exceptions\ExceptionableException;
+use FQ\Exceptions\FileQueryException;
 use FQ\Files;
 
-class FilesQuery extends Exceptionable {
+class FilesQuery {
 
 	/**
 	 * @var Files
@@ -45,22 +44,14 @@ class FilesQuery extends Exceptionable {
 	private $_reverse;
 
 	/**
-	 * @var string[] Filters of the query
-	 */
-	private $_filters;
-
-	/**
-	 * @var string[] Requirements of the query
+	 * @var FilesQueryRequirements
 	 */
 	private $_requirements;
 
 	/**
-	 * Constants determining requirement checking for the query
+	 * @var string[] Filters of the query
 	 */
-	const LEVELS_NONE = 'levels_none';
-	const LEVELS_ONE = 'levels_one';
-	const LEVELS_LAST = 'levels_last';
-	const LEVELS_ALL = 'levels_all';
+	private $_filters;
 
 	/**
 	 * Constants determining preliminary filters types
@@ -72,6 +63,7 @@ class FilesQuery extends Exceptionable {
 	 * @param Files $files
 	 */
 	function __construct(Files $files) {
+		$this->_requirements = new FilesQueryRequirements();
 		$this->_files = $files;
 		$this->reset();
 	}
@@ -80,7 +72,7 @@ class FilesQuery extends Exceptionable {
 		$this->_childDirs = array();
 		$this->_currentQueryChildren = array();
 
-		$this->requirements(self::LEVELS_ONE);
+		$this->requirements()->removeAll();
 		$this->filters(self::FILTER_EXISTING);
 
 		$this->_queriedFileName = null;
@@ -89,56 +81,10 @@ class FilesQuery extends Exceptionable {
 	}
 
 	/**
-	 * @param null|string|string[] $requirements
-	 * @return null|string[]
+	 * @return FilesQueryRequirements
 	 */
-	public function requirements($requirements = null) {
-		if ($requirements !== null) {
-			$this->_requirements = $requirements !== null ? (!is_array($requirements) ? (array) $requirements : $requirements) : null;
-		}
+	public function requirements() {
 		return $this->_requirements;
-	}
-
-	/**
-	 * @param $requirement
-	 * @return bool Return true when added. Returns false when it was already part of the requirements
-	 */
-	public function addRequirement($requirement) {
-		if (!$this->hasRequirement($requirement)) {
-			$this->_requirements[] = $requirement;
-			return true;
-		}
-		return false;
-	}
-
-	/**
-	 * @param $requirement
-	 * @return bool Return true when added. Returns false when it was already part of the requirements
-	 */
-	public function removeRequirement($requirement) {
-		if ($this->hasRequirement($requirement)) {
-			if (($key = array_search($requirement, $this->_requirements)) !== false) {
-				unset($this->_requirements[$key]);
-			}
-			return true;
-		}
-		return false;
-	}
-
-	/**
-	 * @param string $requirement
-	 * @return bool
-	 */
-	public function hasRequirement($requirement) {
-		return in_array($requirement, $this->requirements());
-	}
-
-	/**
-	 * @return bool
-	 */
-	public function hasRequirements() {
-		$requirements = $this->requirements();
-		return count($requirements) === 0 || (count($requirements) == 1 && $requirements[0] !== self::LEVELS_NONE);
 	}
 
 	/**
@@ -161,12 +107,12 @@ class FilesQuery extends Exceptionable {
 
 	/**
 	 * @param ChildDir $childDir
+	 * @throws FileQueryException
 	 * @return false|ChildDir
-	 * @throws ExceptionableException
 	 */
 	public function addChildDir(ChildDir $childDir) {
 		if (!$this->isValidChildDir($childDir)) {
-			return $this->_throwError('Child dir is not part of the Files instance provided to this query');
+			throw new FileQueryException('Child dir is not part of the Files instance provided to this query');
 		}
 		array_push($this->_childDirs, $childDir);
 		return $childDir;
@@ -219,7 +165,7 @@ class FilesQuery extends Exceptionable {
 
 	public function _hasRun() {
 		if (!$this->hasRun()) {
-			return $this->_throwError('You must first call the "run" method before you can retrieve query information');
+			throw new FileQueryException('You must first call the "run" method before you can retrieve query information');
 		}
 		return true;
 	}
@@ -227,7 +173,6 @@ class FilesQuery extends Exceptionable {
 	/**
 	 * @param string $fileName The name of the file the query will be executing
 	 * @return null|string[]
-	 * @throws ExceptionableException
 	 */
 	public function run($fileName) {
 		$this->_queriedFileName = $fileName;
@@ -242,7 +187,7 @@ class FilesQuery extends Exceptionable {
 	protected function processQueryChild(ChildDir $childDir) {
 		$queryChild = $this->_getQueryChild($childDir);
 		$queryChild->reset();
-		if (!$queryChild->meetsRequirements()) {
+		if (!$this->requirements()->meetsRequirements($queryChild)) {
 			return false;
 		}
 		return $queryChild;

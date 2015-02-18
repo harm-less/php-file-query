@@ -4,13 +4,12 @@ namespace FQ;
 
 use FQ\Collections\Dirs\ChildDirCollection;
 use FQ\Collections\Dirs\RootDirCollection;
-use FQ\Core\Exceptionable;
 use FQ\Dirs\ChildDir;
 use FQ\Dirs\RootDir;
-use FQ\Exceptions\ExceptionableException;
+use FQ\Exceptions\FilesException;
 use FQ\Query\FilesQuery;
 
-class Files extends Exceptionable {
+class Files {
 
 	/**
 	 * @var RootDirCollection Container with all root directories
@@ -34,8 +33,6 @@ class Files extends Exceptionable {
 	const DEFAULT_EXTENSION = 'php';
 
 	function __construct() {
-		parent::__construct();
-
 		$this->_rootDirs = new RootDirCollection();
 		$this->_childDirs = new ChildDirCollection();
 		$this->_query = new FilesQuery($this);
@@ -186,20 +183,20 @@ class Files extends Exceptionable {
 	/**
 	 * Checks if the children of the object are still valid
 	 *
-	 * @throws ExceptionableException Thrown when object is not valid
+	 * @throws FilesException Thrown when object is not valid
 	 */
 	protected function isValid() {
 		foreach ($this->rootDirs() as $rootDir) {
 			if ($rootDir->isRequired()) {
 				$rootDirPath = $rootDir->dir();
 				if (!is_dir($rootDirPath)) {
-					return $this->_throwError(sprintf('Root directory "%s" does not exist but is required. Please create this directory or turn this requirement off.', $rootDirPath));
+					throw new FilesException(sprintf('Root directory "%s" does not exist but is required. Please create this directory or turn this requirement off.', $rootDirPath));
 				}
 				foreach ($this->childDirs() as $childDir) {
 					if ($childDir->isRequired()) {
 						$fullPath = $this->getFullPath($rootDir, $childDir);
 						if (!is_dir($fullPath)) {
-							return $this->_throwError(sprintf('Child directory "%s" does not exist in root directory "%s". Please create the directory "%s" or turn this requirement off', $childDir->dir(), $rootDirPath, $fullPath));
+							throw new FilesException(sprintf('Child directory "%s" does not exist in root directory "%s". Please create the directory "%s" or turn this requirement off', $childDir->dir(), $rootDirPath, $fullPath));
 						}
 					}
 				}

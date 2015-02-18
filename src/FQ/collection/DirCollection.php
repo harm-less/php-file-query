@@ -2,31 +2,26 @@
 
 namespace FQ\Collections\Dirs;
 
-use FQ\Core\Exceptionable;
 use FQ\Dirs\Dir;
-use FQ\Exceptions\ExceptionableException;
+use FQ\Exceptions\DirCollectionException;
 
-class DirCollection extends Exceptionable {
+class DirCollection {
 
 	/**
 	 * @var Dir[]
 	 */
 	private $_dirs = array();
 
-	function __construct() {
-		parent::__construct();
-	}
-
 	/**
 	 * @param Dir $dir
 	 * @param null|int $index
-	 * @throws ExceptionableException
+	 * @throws DirCollectionException
 	 * @return Dir|false
 	 */
 	public function addDir(Dir $dir, $index = null) {
 		$totalDirs = $this->totalDirs();
 		if (is_int($index) && $totalDirs < $index) {
-			return $this->_throwError(sprintf('Trying to add dir, but the provided index of "%s" is to high. There are currently %s dirs.', $index, $totalDirs));
+			throw new DirCollectionException(sprintf('Trying to add dir, but the provided index of "%s" is to high. There are currently %s dirs.', $index, $totalDirs));
 		}
 		array_splice($this->_dirs, $index === null ? $totalDirs - 1 : $index, 0, array($dir));
 		return $dir;
@@ -62,17 +57,17 @@ class DirCollection extends Exceptionable {
 
 	/**
 	 * @param int $index
-	 * @throws ExceptionableException
+	 * @throws DirCollectionException
 	 * @return Dir
 	 */
 	public function getDirByIndex($index) {
 		if (!is_int($index)) {
-			return $this->_throwError(sprintf('Index must be a number but is an %s', gettype($index)), true);
+			throw new DirCollectionException(sprintf('Index must be a number but is a %s', gettype($index)));
 		}
 
 		$totalDirs = $this->totalDirs();
 		if ($totalDirs - 1 < $index) {
-			return $this->_throwError(sprintf('Trying to get dir by a certain index, but the provided index of "%s" is to high. There are currently %s dirs.', $index, $totalDirs));
+			throw new DirCollectionException(sprintf('Trying to get dir by a certain index, but the provided index of "%s" is to high. There are currently %s dirs.', $index, $totalDirs));
 		}
 		$dirs = $this->dirs();
 		return $dirs[$index];

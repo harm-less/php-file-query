@@ -25,14 +25,7 @@ class DirCollectionTest extends AbstractDirCollectionTests {
 		$this->assertEquals(1, $this->dirCollection()->totalDirs());
 	}
 	public function testAddDirAtIndexOne() {
-		$dir = $this->_addDirToCollection(null, 1);
-		$this->assertFalse($dir);
-		$this->assertEquals(0, $this->dirCollection()->totalDirs());
-	}
-	public function testAddDirAtIndexOneWithThrowErrorsAtTrue() {
-		$this->setExpectedException('FQ\Exceptions\ExceptionableException');
-		$collection = $this->dirCollection();
-		$collection->throwErrors(true);
+		$this->setExpectedException('FQ\Exceptions\DirCollectionException', 'Trying to add dir, but the provided index of "1" is to high. There are currently 0 dirs.');
 		$this->_addDirToCollection(null, 1);
 	}
 	public function testAddMultipleDirs() {
@@ -48,9 +41,8 @@ class DirCollectionTest extends AbstractDirCollectionTests {
 		$this->assertEquals($dir, $this->dirCollection()->getDirById(self::DIR_ABSOLUTE_DEFAULT));
 	}
 	public function testGetDirByCustomId() {
-		$dir = new Dir(self::DIR_ABSOLUTE_DEFAULT);
+		$dir = $this->_addDirToCollection();
 		$dir->id(self::DIR_CUSTOM_ID);
-		$this->_addDirToCollection($dir);
 		$this->assertEquals($dir, $this->dirCollection()->getDirById(self::DIR_CUSTOM_ID));
 	}
 	public function testGetDirByIdThatDoesNotExist() {
@@ -68,17 +60,11 @@ class DirCollectionTest extends AbstractDirCollectionTests {
 		$this->assertEquals($firstDir, $this->dirCollection()->getDirByIndex(1));
 	}
 	public function testGetDirByIndexIfTheIndexIsNotAnInteger() {
+		$this->setExpectedException('FQ\Exceptions\DirCollectionException', 'Index must be a number but is a string');
 		$this->assertFalse($this->dirCollection()->getDirByIndex('not_an_int'));
 	}
-	public function testGetDirByIndexIfTheIndexIsNotAnIntegerAndThrowErrorsIsSetToTrue() {
-		$collection = $this->dirCollection();
-		$collection->throwErrors(true);
-		$this->assertFalse($this->dirCollection()->getDirByIndex('not_an_int'));
-	}
-	public function testGetDirByIndexIfTheIndexIsTooHighAndThrowErrorsIsSetToTrue() {
-		$this->setExpectedException('FQ\Exceptions\ExceptionableException');
-		$collection = $this->dirCollection();
-		$collection->throwErrors(true);
+	public function testGetDirByIndexIfTheIndexIsTooHigh() {
+		$this->setExpectedException('FQ\Exceptions\DirCollectionException', 'Trying to get dir by a certain index, but the provided index of "1" is to high. There are currently 0 dirs');
 		$this->dirCollection()->getDirByIndex(1);
 	}
 
