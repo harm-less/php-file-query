@@ -14,7 +14,37 @@ $builder = new \FQ\Query\FilesQueryBuilder($sampleSimple);
 pr($builder->run('File1')->listPaths());
 
 
+class Foo {
+	public function PublicMethod() {}
+	private function PrivateMethod() {}
+	public static function PublicStaticMethod() {}
+	private static function PrivateStaticMethod() {}
+}
 
+$foo = new Foo();
+
+$callbacks = array(
+	array($foo, 'PublicMethod'),
+	array($foo, 'PrivateMethod'),
+	array($foo, 'PublicStaticMethod'),
+	array($foo, 'PrivateStaticMethod'),
+	array('Foo', 'PublicMethod'),
+	array('Foo', 'PrivateMethod'),
+	array('Foo', 'PublicStaticMethod'),
+	array('Foo', 'PrivateStaticMethod'),
+);
+
+foreach ($callbacks as $callback) {
+	var_dump($callback);
+	echo '<br>';
+	var_dump(method_exists($callback[0], $callback[1])); // 0: object / class name, 1: method name
+	echo '<br>';
+	var_dump(is_callable($callback));
+	echo '<br>';
+	echo str_repeat('-', 40), "\n\n";
+	echo '<br>';
+	echo '<br>';
+}
 
 
 function pr($var) {
