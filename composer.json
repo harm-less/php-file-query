@@ -20,13 +20,13 @@
 	},
 	"autoload": {
 		"psr-4": {
-			"FQ\\": "src/FQ/"
+			"FQ\\": "src/FQ"
 		}
 	},
 	"autoload-dev": {
-		"psr-0": {
-			"FQ\\": "tests",
-			"FQ\\Samples\\": "samples"
+		"psr-4": {
+			"FQ\\Tests\\": "tests",
+			"FQ\\Samples\\": "samples/FQ/Samples"
 		}
 	}
 }

@@ -2,8 +2,8 @@
 
 namespace FQ;
 
-use FQ\Collections\Dirs\ChildDirCollection;
-use FQ\Collections\Dirs\RootDirCollection;
+use FQ\Collections\ChildDirCollection;
+use FQ\Collections\RootDirCollection;
 use FQ\Dirs\ChildDir;
 use FQ\Dirs\RootDir;
 use FQ\Exceptions\FilesException;

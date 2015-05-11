@@ -5,7 +5,6 @@ error_reporting(E_ALL);
 
 include_once __DIR__ . '/setup.php';
 $autoloader = require __DIR__ . '/vendor/autoload.php';
-$autoloader->add('FQ\\Samples\\', __DIR__);
 
 $sampleSimple = new \FQ\Samples\Simple();
 //print_r($sampleSimple->queryFile1FromChild1());
