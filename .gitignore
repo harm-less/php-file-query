@@ -9,5 +9,5 @@ vendor/
 docs/
 
 # Auto-generated code coverage report
-report/
-coverage/
+report/**
+coverage/**
