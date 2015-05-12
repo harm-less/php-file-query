@@ -1,5 +1,5 @@
 #ide
-.idea
+.idea/
 
 # Composer
 composer.lock
@@ -9,5 +9,5 @@ vendor/
 docs/
 
 # Auto-generated code coverage report
-report/**
-coverage/**
+report/
+coverage/
