@@ -35,10 +35,6 @@ class DirCollectionTest extends AbstractDirCollectionTests {
 		$this->assertEquals(2, $this->dirCollection()->totalDirs());
 	}
 
-	public function testGetDirByDefaultId() {
-		$dir = $this->_addDirToCollection();
-		$this->assertEquals($dir, $this->dirCollection()->getDirById(self::DIR_ABSOLUTE_DEFAULT));
-	}
 	public function testGetDirByCustomId() {
 		$dir = $this->_addDirToCollection();
 		$dir->id(self::DIR_CUSTOM_ID);
@@ -60,7 +56,7 @@ class DirCollectionTest extends AbstractDirCollectionTests {
 	}
 	public function testGetDirByIndexIfTheIndexIsNotAnInteger() {
 		$this->setExpectedException('FQ\Exceptions\DirCollectionException', 'Index must be a number but is a string');
-		$this->assertFalse($this->dirCollection()->getDirByIndex('not_an_int'));
+		$this->dirCollection()->getDirByIndex('not_an_int');
 	}
 	public function testGetDirByIndexIfTheIndexIsTooHigh() {
 		$this->setExpectedException('FQ\Exceptions\DirCollectionException', 'Trying to get dir by a certain index, but the provided index of "1" is to high. There are currently 0 dirs');
@@ -70,14 +66,13 @@ class DirCollectionTest extends AbstractDirCollectionTests {
 	public function testGetDir() {
 		$dir = $this->_addDirToCollection();
 		$this->assertEquals($dir, $this->dirCollection()->getDir($dir));
-		$this->assertEquals($dir, $this->dirCollection()->getDir(self::DIR_ABSOLUTE_DEFAULT));
+		$this->assertEquals($dir, $this->dirCollection()->getDir(self::DIR_CUSTOM_ID));
 		$this->assertEquals($dir, $this->dirCollection()->getDir(0));
 		$this->assertNull($this->dirCollection()->getDir(null));
 	}
 
 	public function testGetPaths() {
 		$this->_addDirToCollection();
-		print_r($this->dirCollection()->getPaths());
 		$this->assertEquals(array(self::DIR_ABSOLUTE_DEFAULT), $this->dirCollection()->getPaths());
 	}
 

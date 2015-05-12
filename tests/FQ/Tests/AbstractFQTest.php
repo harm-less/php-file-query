@@ -63,11 +63,11 @@ abstract class AbstractFQTest extends PHPUnit_Framework_TestCase
 		return $method->invokeArgs($obj, $args);
 	}
 
-	protected function __newDir($dir = self::DIR_ABSOLUTE_DEFAULT, $required = false) {
-		return new Dir($dir, $required);
+	protected function __newDir($id = self::DIR_CUSTOM_ID, $dir = self::DIR_ABSOLUTE_DEFAULT, $required = false) {
+		return new Dir($id, $dir, $required);
 	}
 	protected function _newActualDir($required = true) {
-		return $this->__newDir(self::DIR_ABSOLUTE_DEFAULT, $required);
+		return $this->__newDir(self::DIR_CUSTOM_ID, self::DIR_ABSOLUTE_DEFAULT, $required);
 	}
 	protected function _newFictitiousDir($required = true) {
 		return $this->__newDir('does_not_exist', $required);

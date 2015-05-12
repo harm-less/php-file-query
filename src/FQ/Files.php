@@ -197,7 +197,6 @@ class Files {
 				foreach ($this->childDirs() as $childDir) {
 					if ($childDir->isRequired()) {
 						$fullPath = $this->getFullPath($rootDir, $childDir);
-						echo $fullPath;
 						if (!is_dir($fullPath)) {
 							throw new FilesException(sprintf('Child directory "%s" does not exist in root directory "%s". Please create the directory "%s" or turn this requirement off', $childDir->dir(), $rootDirPath, $fullPath));
 						}
