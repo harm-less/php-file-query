@@ -41,7 +41,7 @@ class ChildDirCollectionTest extends AbstractDirCollectionTests {
 	}
 
 	public function testAddDirIsDisabled() {
-		$this->setExpectedException('FQ\Exceptions\FilesException', 'Use addChildDir() to add directories');
+		$this->setExpectedException('FQ\Exceptions\DirCollectionException', 'Use addChildDir() to add directories');
 		$collection = $this->dirCollection();
 		$collection->addDir($this->_createNewDir());
 	}

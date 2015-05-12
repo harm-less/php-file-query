@@ -3,7 +3,6 @@
 namespace FQ\Tests\Collections;
 
 use FQ\Collections\DirCollection;
-use FQ\Dirs\Dir;
 
 class DirCollectionTest extends AbstractDirCollectionTests {
 
@@ -78,6 +77,7 @@ class DirCollectionTest extends AbstractDirCollectionTests {
 
 	public function testGetPaths() {
 		$this->_addDirToCollection();
+		print_r($this->dirCollection()->getPaths());
 		$this->assertEquals(array(self::DIR_ABSOLUTE_DEFAULT), $this->dirCollection()->getPaths());
 	}
 

@@ -63,7 +63,7 @@ abstract class AbstractFQTest extends PHPUnit_Framework_TestCase
 		return $method->invokeArgs($obj, $args);
 	}
 
-	protected function __newDir($dir = self::DIR_ABSOLUTE_DEFAULT, $required = true) {
+	protected function __newDir($dir = self::DIR_ABSOLUTE_DEFAULT, $required = false) {
 		return new Dir($dir, $required);
 	}
 	protected function _newActualDir($required = true) {
@@ -73,23 +73,23 @@ abstract class AbstractFQTest extends PHPUnit_Framework_TestCase
 		return $this->__newDir('does_not_exist', $required);
 	}
 
-	protected function __newRootDir($absoluteDir = self::ROOT_DIR_ABSOLUTE_DEFAULT, $basePath = null, $required = true) {
-		return new RootDir($absoluteDir, $basePath, $required);
+	protected function __newRootDir($id = self::ROOT_DIR_ID_CUSTOM, $absoluteDir = self::ROOT_DIR_ABSOLUTE_DEFAULT, $basePath = null, $required = false) {
+		return new RootDir($id, $absoluteDir, $basePath, $required);
 	}
-	protected function _newActualRootDir($basePath = null, $required = true) {
-		return $this->__newRootDir(self::ROOT_DIR_ABSOLUTE_DEFAULT, $basePath, $required);
+	protected function _newActualRootDir($basePath = null, $required = false) {
+		return $this->__newRootDir(self::ROOT_DIR_ID_CUSTOM, self::ROOT_DIR_ABSOLUTE_DEFAULT, $basePath, $required);
 	}
 	protected function _newFictitiousRootDir($required = true) {
-		return $this->__newRootDir('does_not_exist', $required);
+		return $this->__newRootDir('does_not_exist', 'does_not_exist', $required);
 	}
 
-	protected function __newChildDir($relativePathFromRootDirs = self::CHILD_DIR_DEFAULT, $required = true) {
-		return new ChildDir($relativePathFromRootDirs, $required);
+	protected function __newChildDir($id = self::CHILD_DIR_DEFAULT, $relativePathFromRootDirs = self::CHILD_DIR_DEFAULT, $required = false) {
+		return new ChildDir($id, $relativePathFromRootDirs, $required);
 	}
 	protected function _newActualChildDir($required = true) {
-		return $this->__newChildDir(self::CHILD_DIR_DEFAULT, $required);
+		return $this->__newChildDir(self::CHILD_DIR_DEFAULT, self::CHILD_DIR_DEFAULT, $required);
 	}
-	protected function _newFictitiousChildDir($required = true) {
-		return $this->__newChildDir('does_not_exist', $required);
+	protected function _newFictitiousChildDir($required = false) {
+		return $this->__newChildDir('does_not_exist', 'does_not_exist', $required);
 	}
 }

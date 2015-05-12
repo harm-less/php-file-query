@@ -3,8 +3,11 @@
 namespace FQ\Query;
 
 use FQ\Dirs\ChildDir;
+use FQ\Dirs\RootDir;
 use FQ\Exceptions\FileQueryException;
 use FQ\Files;
+use FQ\Query\Selection\ChildSelection;
+use FQ\Query\Selection\RootSelection;
 
 class FilesQuery {
 
@@ -14,9 +17,14 @@ class FilesQuery {
 	private $_files;
 
 	/**
-	 * @var ChildDir[]
+	 * @var RootSelection
 	 */
-	private $_childDirs;
+	private $_rootDirSelection;
+
+	/**
+	 * @var ChildSelection
+	 */
+	private $_childDirSelection;
 
 	/**
 	 * @var FilesQueryChild[]
@@ -65,19 +73,23 @@ class FilesQuery {
 	function __construct(Files $files) {
 		$this->_requirements = new FilesQueryRequirements();
 		$this->_files = $files;
+
 		$this->reset();
 	}
 
 	public function reset() {
-		$this->_childDirs = array();
 		$this->_currentQueryChildren = array();
 
 		$this->requirements()->removeAll();
-		$this->filters(self::FILTER_EXISTING);
+		$this->filters(self::FILTER_EXISTING, false);
 
 		$this->_queriedFileName = null;
 		$this->_reverse = false;
 		$this->_hasRun = false;
+	}
+	public function resetSelection() {
+		$this->getRootDirSelection()->reset();
+		$this->getChildDirSelection()->reset();
 	}
 
 	/**
@@ -96,36 +108,41 @@ class FilesQuery {
 
 	/**
 	 * @param string|string[] $filters
+	 * @param bool $mergeWithExistingFilters If the new filters should merge with the old ones. This even works when no
+	 * filters were present to begin with
 	 * @return string[]
 	 */
-	public function filters($filters = null) {
+	public function filters($filters = null, $mergeWithExistingFilters = true) {
 		if ($filters !== null) {
-			$this->_filters = is_string($filters) ? (array) $filters : $filters;
+			$newFilters = is_string($filters) ? (array) $filters : $filters;
+			if ($mergeWithExistingFilters) {
+				$this->_filters = array_merge(is_array($this->_filters) ? $this->_filters : array(), $newFilters);
+			}
+			else {
+				$this->_filters = $newFilters;
+			}
 		}
 		return $this->_filters;
 	}
 
-	/**
-	 * @param ChildDir $childDir
-	 * @throws FileQueryException
-	 * @return false|ChildDir
-	 */
-	public function addChildDir(ChildDir $childDir) {
-		if (!$this->isValidChildDir($childDir)) {
-			throw new FileQueryException('Child dir is not part of the Files instance provided to this query');
+	public function setRootDirSelection(RootSelection $selection = null) {
+		$this->_rootDirSelection = $selection;
+	}
+	public function getRootDirSelection($createNewSelection = true) {
+		if ($this->_rootDirSelection === null && $createNewSelection) {
+			$this->_rootDirSelection = new RootSelection();
 		}
-		array_push($this->_childDirs, $childDir);
-		return $childDir;
+		return $this->_rootDirSelection;
 	}
 
-	/**
-	 * @param null|string|string[]|ChildDir|ChildDir[] $childDirs
-	 */
-	public function addChildDirs($childDirs = null) {
-		$childDirs = ($childDirs === null || empty($childDirs) ? $this->_files->childDirs() : (is_array($childDirs) ? $childDirs : array($childDirs)));
-		foreach ($childDirs as $childDir) {
-			$this->addChildDir($this->_files->getChildDir($childDir));
+	public function setChildDirSelection(ChildSelection $selection = null) {
+		$this->_childDirSelection = $selection;
+	}
+	public function getChildDirSelection($createNewSelection = true) {
+		if ($this->_childDirSelection === null && $createNewSelection) {
+			$this->_childDirSelection = new ChildSelection();
 		}
+		return $this->_childDirSelection;
 	}
 
 	/**
@@ -144,16 +161,8 @@ class FilesQuery {
 		return $this->_currentQueryChildren;
 	}
 
-	public function childDirs() {
-		return $this->_childDirs;
-	}
-
 	public function files() {
 		return $this->_files;
-	}
-
-	public function rootDirs() {
-		return $this->files()->rootDirs();
 	}
 
 	public function hasRun() {
@@ -163,7 +172,7 @@ class FilesQuery {
 		return $this->_reverse;
 	}
 
-	public function _hasRun() {
+	protected function _hasRun() {
 		if (!$this->hasRun()) {
 			throw new FileQueryException('You must first call the "run" method before you can retrieve query information');
 		}
@@ -177,11 +186,26 @@ class FilesQuery {
 	public function run($fileName) {
 		$this->_queriedFileName = $fileName;
 		$this->_currentQueryChildren = array();
-		foreach ($this->childDirs() as $childDir) {
+		foreach ($this->getCurrentChildDirSelection() as $childDir) {
+			pr($childDir);
 			$this->_currentQueryChildren[$childDir->id()] = $this->processQueryChild($childDir);
 		}
 		$this->_hasRun = true;
 		return $this->listPaths();
+	}
+
+	/**
+	 * @return RootDir[]
+	 */
+	public function getCurrentRootDirSelection() {
+		return $this->_rootDirSelection->getSelection($this->files()->rootDirs());
+	}
+
+	/**
+	 * @return ChildDir[]
+	 */
+	public function getCurrentChildDirSelection() {
+		return $this->_childDirSelection->getSelection($this->files()->childDirs());
 	}
 
 	protected function processQueryChild(ChildDir $childDir) {
@@ -220,7 +244,7 @@ class FilesQuery {
 		foreach($this->queryChildDirs() as $childQuery) {
 			// in case one of the child queries failed and returned false, do not try to add this to the list
 			if ($childQuery !== false) {
-				$paths = array_merge($paths, $childQuery->filteredAbsolutePaths());
+				$paths = array_merge_recursive($paths, $childQuery->filteredAbsolutePaths());
 			}
 		}
 		return $paths;

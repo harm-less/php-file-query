@@ -9,7 +9,7 @@ class RootDirTest extends AbstractFQTest {
 
 	public function testCreateNewRootDir()
 	{
-		$rootDir = new RootDir(self::ROOT_DIR_ABSOLUTE_DEFAULT);
+		$rootDir = new RootDir(self::ROOT_DIR_ABSOLUTE_DEFAULT, self::ROOT_DIR_ABSOLUTE_DEFAULT);
 		$this->assertNotNull($rootDir);
 		$this->assertTrue($rootDir instanceof RootDir);
 	}

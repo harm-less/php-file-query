@@ -50,8 +50,8 @@ class FilesTest extends AbstractFQTest {
 	public function testAddingOneRootDirAndRetrieveIt() {
 		$rootDir = $this->_addRootDir();
 		$this->assertEquals($rootDir, $this->_fqApp->getRootDirByIndex(0));
-		$this->assertEquals($rootDir, $this->_fqApp->getRootDirById(AbstractFQTest::ROOT_DIR_ABSOLUTE_DEFAULT));
-		$this->assertEquals($rootDir, $this->_fqApp->getRootDir(AbstractFQTest::ROOT_DIR_ABSOLUTE_DEFAULT));
+		$this->assertEquals($rootDir, $this->_fqApp->getRootDirById(AbstractFQTest::ROOT_DIR_ID_CUSTOM));
+		$this->assertEquals($rootDir, $this->_fqApp->getRootDir(AbstractFQTest::ROOT_DIR_ID_CUSTOM));
 		$this->assertEquals($rootDir, $this->_fqApp->getRootDir($rootDir));
 	}
 
@@ -125,40 +125,34 @@ class FilesTest extends AbstractFQTest {
 	}
 	public function testIfFilesIsInvalidAfterAddingRequiredRootDirThatExistsAndRequiredChildDirThatDoNotExist() {
 		$this->setExpectedException('\FQ\Exceptions\FilesException');
-		$this->_addRootDir();
-		$this->_addChildDir(null, $this->_newFictitiousChildDir());
+		$this->_addRootDir(null, null, true);
+		$this->_addChildDir(null, $this->_newFictitiousChildDir(true));
 	}
 	public function testIfFilesIsInvalidAfterAddingMultipleRequiredRootDirsThatAllExistAndMultipleRequiredChildDirFromWhichTheLastOneDoesNotExist() {
 		$this->setExpectedException('\FQ\Exceptions\FilesException');
-		$this->_addRootDirs(2);
-		$this->_addChildDir();
-		$this->_addChildDir(null, $this->_newFictitiousChildDir());
+		$this->_addRootDirs(2, true);
+		$this->_addChildDir(null, null, true);
+		$this->_addChildDir(null, $this->_newFictitiousChildDir(true));
 	}
 	public function testIfFilesIsInvalidAfterAddingRequiredRootDirThatDoesExistsButThrowErrorsIsSetToTrue() {
 		$this->setExpectedException('FQ\Exceptions\FilesException');
-		$this->_addRootDir(null, $this->__newRootDir('does not exist'));
-	}
-	public function testIfFilesIsInvalidAfterAddingRequiredRootDirThatExistsAndRequiredChildDirThatDoNotExistButThrowErrorsIsSetToTrue() {
-		$this->setExpectedException('FQ\Exceptions\FilesException');
-
-		$this->_addRootDir();
-		$this->_addChildDir(null, $this->_newFictitiousChildDir());
+		$this->_addRootDir(null, $this->__newRootDir('does not exist', null, null, true));
 	}
 
 
-	protected function _addRootDir($index = null, RootDir $rootDir = null) {
-		$rootDir = $rootDir !== null ? $rootDir : $this->_newActualRootDir();
+	protected function _addRootDir($index = null, RootDir $rootDir = null, $required = false) {
+		$rootDir = $rootDir !== null ? $rootDir : $this->_newActualRootDir(null, $required);
 		return $this->_fqApp->addRootDir($rootDir, $index);
 	}
-	protected function _addRootDirs($amount) {
+	protected function _addRootDirs($amount, $required = false) {
 		while ($amount) {
-			$this->_addRootDir();
+			$this->_addRootDir(null, null, $required);
 			$amount--;
 		}
 	}
 
-	protected function _addChildDir($index = null, ChildDir $childDir = null) {
-		$childDir = $childDir !== null ? $childDir : $this->_newActualChildDir();
+	protected function _addChildDir($index = null, ChildDir $childDir = null, $required = false) {
+		$childDir = $childDir !== null ? $childDir : $this->_newActualChildDir(null, $required);
 		return $this->_fqApp->addChildDir($childDir, $index);
 	}
 	protected function _addChildDirs($amount) {

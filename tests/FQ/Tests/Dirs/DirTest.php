@@ -16,21 +16,21 @@ class DirTest extends AbstractFQTest {
 		$this->nonPublicMethodObject($this->_createActualDir());
 	}
 
-	protected function __createDir($dir = self::ACTUAL_DIR_NAME, $required = false) {
-		return new Dir($dir, $required);
+	protected function __createDir($id = self::ACTUAL_DIR_NAME, $dir = self::ACTUAL_DIR_NAME, $required = false) {
+		return new Dir($id, $dir, $required);
 	}
 	protected function _createActualDir($required = false) {
-		return $this->__createDir(self::ACTUAL_DIR_NAME, $required);
+		return $this->__createDir(self::ACTUAL_DIR_NAME, self::ACTUAL_DIR_NAME, $required);
 	}
 	protected function _createFictitiousDir($required = false) {
-		return $this->__createDir(self::FICTITIOUS_DIR_NAME, $required);
+		return $this->__createDir(self::FICTITIOUS_DIR_NAME, self::FICTITIOUS_DIR_NAME, $required);
 	}
 	protected function _createDirWithTrailingSlash($required = false) {
-		return $this->__createDir(self::ACTUAL_DIR_NAME . '/', $required);
+		return $this->__createDir(self::ACTUAL_DIR_NAME, self::ACTUAL_DIR_NAME . '/', $required);
 	}
 
 	public function testConstructor() {
-		$dir = new Dir(self::ACTUAL_DIR_NAME);
+		$dir = new Dir(self::ACTUAL_DIR_NAME, self::ACTUAL_DIR_NAME);
 		$this->assertNotNull($dir);
 		$this->assertTrue($dir instanceof Dir);
 	}

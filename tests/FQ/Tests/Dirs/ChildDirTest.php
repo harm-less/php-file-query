@@ -10,7 +10,7 @@ class ChildDirTest extends AbstractFQTest {
 
 	public function testCreateNewRootDir()
 	{
-		$childDir = new ChildDir(self::CHILD_DIR_DEFAULT);
+		$childDir = new ChildDir(self::CHILD_DIR_DEFAULT, self::CHILD_DIR_DEFAULT);
 		$this->assertNotNull($childDir);
 		$this->assertTrue($childDir instanceof ChildDir);
 	}

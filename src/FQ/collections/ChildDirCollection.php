@@ -5,7 +5,6 @@ namespace FQ\Collections;
 use FQ\Dirs\ChildDir;
 use FQ\Dirs\Dir;
 use FQ\Exceptions\DirCollectionException;
-use FQ\Exceptions\FilesException;
 
 class ChildDirCollection extends DirCollection {
 
@@ -25,11 +24,11 @@ class ChildDirCollection extends DirCollection {
 	 *
 	 * @param Dir $dir
 	 * @param null $index
-	 * @return FilesException
-	 * @throws FilesException
+	 * @return DirCollectionException
+	 * @throws DirCollectionException
 	 */
 	public function addDir(Dir $dir, $index = null) {
-		throw new FilesException('Use addChildDir() to add directories');
+		throw new DirCollectionException('Use addChildDir() to add directories');
 	}
 
 

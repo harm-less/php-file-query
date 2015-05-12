@@ -19,7 +19,8 @@ class Dir {
 	 */
 	private $_required;
 
-	function __construct($dir, $required = false) {
+	function __construct($id, $dir, $required = false) {
+		$this->id($id);
 		$this->dir($dir);
 		$this->isRequired($required);
 	}

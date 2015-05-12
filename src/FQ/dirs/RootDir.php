@@ -9,8 +9,8 @@ class RootDir extends Dir {
 	 */
 	private $_basePath;
 
-	function __construct($absolutePath, $basePath = null, $required = true) {
-		parent::__construct($absolutePath, $required);
+	function __construct($id, $absolutePath, $basePath = null, $required = true) {
+		parent::__construct($id, $absolutePath, $required);
 
 		$this->basePath($basePath === null ? $absolutePath : $basePath);
 	}

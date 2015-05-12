@@ -11,8 +11,8 @@ class ChildDir extends Dir {
 	 */
 	private $defaultFileExtension;
 
-	function __construct($relativePathFromRootDirs, $required = false) {
-		parent::__construct($relativePathFromRootDirs, $required);
+	function __construct($id, $relativePathFromRootDirs, $required = false) {
+		parent::__construct($id, $relativePathFromRootDirs, $required);
 	}
 
 	/**

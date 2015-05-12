@@ -102,7 +102,7 @@ class FilesQueryRequirements {
 	 */
 	public function hasRequirements() {
 		$requirements = $this->requirements();
-		return count($requirements) === 0;
+		return count($requirements) !== 0;
 	}
 
 	/**

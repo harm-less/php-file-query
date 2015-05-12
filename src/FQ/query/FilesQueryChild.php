@@ -5,6 +5,7 @@ namespace FQ\Query;
 use FQ\Dirs\ChildDir;
 use FQ\Exceptions\FileQueryException;
 use FQ\Files;
+use FQ\Query\Selection\RootSelection;
 
 class FilesQueryChild {
 

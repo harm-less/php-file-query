@@ -50,6 +50,8 @@ class DirCollection {
 	 */
 	public function getDirById($id) {
 		foreach ($this->dirs() as $dir) {
+			var_dump($dir->id());
+			var_dump($id);
 			if ($dir->id() == $id) return $dir;
 		}
 		return null;

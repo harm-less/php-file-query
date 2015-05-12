@@ -41,7 +41,7 @@ class RootDirCollectionTest extends AbstractDirCollectionTests {
 	}
 
 	public function testAddDirIsDisabled() {
-		$this->setExpectedException('FQ\Exceptions\FilesException', 'Use addRootDir() to add directories');
+		$this->setExpectedException('FQ\Exceptions\DirCollectionException', 'Use addRootDir() to add directories');
 		$collection = $this->dirCollection();
 		$collection->addDir($this->_createNewDir());
 	}
@@ -54,12 +54,12 @@ class RootDirCollectionTest extends AbstractDirCollectionTests {
 	public function testGetDir() {
 		$dir = $this->_addDirToCollection();
 		$this->assertEquals($dir, $this->dirCollection()->getDir($dir));
-		$this->assertEquals($dir, $this->dirCollection()->getDir(self::ROOT_DIR_ABSOLUTE_DEFAULT));
+		$this->assertEquals($dir, $this->dirCollection()->getDir(self::ROOT_DIR_ID_CUSTOM));
 		$this->assertEquals($dir, $this->dirCollection()->getDir(0));
 	}
 	public function testGetDirById() {
 		$dir = $this->_addDirToCollection();
-		$this->assertEquals($dir, $this->dirCollection()->getDirById(self::ROOT_DIR_ABSOLUTE_DEFAULT));
+		$this->assertEquals($dir, $this->dirCollection()->getDirById(self::ROOT_DIR_ID_CUSTOM));
 	}
 	public function testGetDirByIndex() {
 		$dir = $this->_addDirToCollection();

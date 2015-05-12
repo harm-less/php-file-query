@@ -8,6 +8,8 @@ use FQ\Dirs\ChildDir;
 use FQ\Dirs\RootDir;
 use FQ\Exceptions\FilesException;
 use FQ\Query\FilesQuery;
+use FQ\Query\Selection\ChildSelection;
+use FQ\Query\Selection\RootSelection;
 
 class Files {
 
@@ -79,7 +81,7 @@ class Files {
 
 	/**
 	 * @param string|RootDir $rootDir
-	 * @return null|RootDir
+	 * @return RootDir|null
 	 */
 	public function getRootDir($rootDir) {
 		return $this->_rootDirs()->getDir($rootDir);
@@ -195,6 +197,7 @@ class Files {
 				foreach ($this->childDirs() as $childDir) {
 					if ($childDir->isRequired()) {
 						$fullPath = $this->getFullPath($rootDir, $childDir);
+						echo $fullPath;
 						if (!is_dir($fullPath)) {
 							throw new FilesException(sprintf('Child directory "%s" does not exist in root directory "%s". Please create the directory "%s" or turn this requirement off', $childDir->dir(), $rootDirPath, $fullPath));
 						}
@@ -209,14 +212,20 @@ class Files {
 
 
 	/**
-	 * @param null|string|RootDir $rootDir
-	 * @param null|string|ChildDir $childDir
+	 * @param string|RootDir $rootDir
+	 * @param string|ChildDir $childDir
 	 * @return string
 	 */
 	public function getFullPath($rootDir, $childDir) {
-		$rootDir = $this->getRootDir($rootDir);
-		$child = $this->getChildDir($childDir);
-		return $rootDir->dir() . '/' . $child->dir();
+		$rootDirObj = $this->getRootDir($rootDir);
+		$childObj = $this->getChildDir($childDir);
+
+		if ($rootDirObj === null || $childObj === null) {
+			$rootDirId = $rootDirObj !== null ? $rootDirObj->id() : '-';
+			$childDirId = $childObj !== null ? $childObj->id() : '-';
+			throw new FilesException(sprintf('Cannot build a full path because either the root directory, the child directory or both are not defined. Root directory id "%s". Child directory id "%s"', $rootDirId, $childDirId));
+		}
+		return $rootDirObj->dir() . '/' . $childObj->dir();
 	}
 
 	/**
@@ -254,13 +263,14 @@ class Files {
 
 	/**
 	 * @param string $fileName
-	 * @param null|string|ChildDir[] $children
+	 * @param RootSelection $rootDirs
+	 * @param ChildSelection $children
 	 * @param string $requiredLevels
 	 * @param bool $reverseLoad
 	 * @return bool
 	 */
-	public function loadFiles($fileName, $children = null, $requiredLevels = FilesQuery::LEVELS_ONE, $reverseLoad = true) {
-        $query = $this->query($children);
+	public function loadFiles($fileName, RootSelection $rootDirs = null, ChildSelection $children = null, $requiredLevels = FilesQuery::LEVELS_ONE, $reverseLoad = true) {
+        $query = $this->query($rootDirs, $children, true, true);
         $query->reverse($reverseLoad);
         $query->requirements($requiredLevels);
         $query->run($fileName);
@@ -273,34 +283,43 @@ class Files {
 
 	/**
 	 * @param string $fileName
-	 * @param null|string|ChildDir[] $children
+	 * @param RootSelection $rootDirs
+	 * @param ChildSelection $children
 	 * @return FilesQuery
 	 */
-	public function getFilePaths($fileName, $children = null) {
-		$query = $this->querySimple($fileName, $children);
+	public function getFilePaths($fileName, RootSelection $rootDirs = null, ChildSelection $children = null) {
+		$query = $this->queryRun($fileName, $rootDirs, $children, true, true);
 		return $query->listPaths();
 	}
 
 	/**
 	 * @param string $fileName
-	 * @param null $children
-	 * @internal param null|string|ChildDir $childDir
+	 * @param RootSelection $rootDirs
+	 * @param ChildSelection $children
 	 * @return bool
 	 */
-	public function fileExists($fileName, $children = null) {
-		$query = $this->querySimple($fileName, $children);
+	public function fileExists($fileName, RootSelection $rootDirs = null, ChildSelection $children = null) {
+		$query = $this->queryRun($fileName, $rootDirs, $children, true, true);
 		return $query->hasPaths();
 	}
 
 	/**
-	 * @param null|ChildDir|ChildDir[] $children
-	 * @param bool $reset
+	 * @param RootSelection $rootDirs
+	 * @param ChildSelection $children
+	 * @param bool $resetQuery
+	 * @param bool $resetSelection
 	 * @return FilesQuery
 	 */
-	public function query($children = null, $reset = true) {
+	public function query(RootSelection $rootDirs = null, ChildSelection $children = null, $resetQuery = true, $resetSelection = false) {
 		$query = $this->_query;
-		if ($reset) $query->reset();
-		$query->addChildDirs($children);
+		if ($resetQuery) {
+			$query->reset();
+		}
+		if ($resetSelection) {
+			$query->resetSelection();
+		}
+		$query->setRootDirSelection($rootDirs);
+		$query->setChildDirSelection($children);
 		return $query;
 	}
 
@@ -308,12 +327,14 @@ class Files {
 	 * A basic query wrapper
 	 *
 	 * @param string $fileName
-	 * @param null|ChildDir|ChildDir[] $children
-	 * @param bool $reset
+	 * @param RootSelection $rootDirs
+	 * @param ChildSelection $children
+	 * @param bool $resetQuery
+	 * @param bool $resetSelection
 	 * @return FilesQuery
 	 */
-	public function querySimple($fileName, $children = null, $reset = true) {
-		$query = $this->query($children, $reset);
+	public function queryRun($fileName, RootSelection $rootDirs = null, ChildSelection $children = null, $resetQuery = true, $resetSelection = false) {
+		$query = $this->query($rootDirs, $children, $resetQuery, $resetSelection);
 		$query->run($fileName);
 		return $query;
 	}

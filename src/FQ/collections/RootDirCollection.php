@@ -4,7 +4,7 @@ namespace FQ\Collections;
 
 use FQ\Dirs\Dir;
 use FQ\Dirs\RootDir;
-use FQ\Exceptions\FilesException;
+use FQ\Exceptions\DirCollectionException;
 
 class RootDirCollection extends DirCollection {
 
@@ -24,11 +24,11 @@ class RootDirCollection extends DirCollection {
 	 *
 	 * @param Dir $dir
 	 * @param null $index
-	 * @return FilesException
-	 * @throws FilesException
+	 * @return DirCollectionException
+	 * @throws DirCollectionException
 	 */
 	public function addDir(Dir $dir, $index = null) {
-		throw new FilesException('Use addRootDir() to add directories');
+		throw new DirCollectionException('Use addRootDir() to add directories');
 	}
 
 	/**
