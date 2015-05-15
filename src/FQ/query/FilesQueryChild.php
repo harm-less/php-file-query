@@ -63,16 +63,8 @@ class FilesQueryChild {
 	function __construct(FilesQuery $filesQuery, ChildDir $childDir) {
 		$this->_filesQuery = $filesQuery;
 		$this->_childDir = $childDir;
-	}
 
-	public function setRootDirs($dirs) {
-		$this->_rootDirs = $dirs;
-	}
-	public function getRootDirs() {
-		if ($this->_rootDirs === null) {
-			return array();
-		}
-		return $this->_rootDirs;
+		$this->reset();
 	}
 
 	/**
@@ -89,6 +81,16 @@ class FilesQueryChild {
 
 		$this->_filteredPathsCashed = null;
 		$this->_filteredBasePaths = null;
+	}
+
+	public function setRootDirs($dirs) {
+		$this->_rootDirs = $dirs;
+	}
+	public function getRootDirs() {
+		if ($this->_rootDirs === null) {
+			return array();
+		}
+		return $this->_rootDirs;
 	}
 
 	/**
