@@ -3,6 +3,7 @@
 namespace FQ\Query;
 
 use FQ\Dirs\ChildDir;
+use FQ\Dirs\RootDir;
 use FQ\Exceptions\FileQueryException;
 use FQ\Files;
 use FQ\Query\Selection\RootSelection;
@@ -13,6 +14,11 @@ class FilesQueryChild {
 	 * @var FilesQuery
 	 */
 	private $_filesQuery;
+
+	/**
+	 * @var RootDir[]
+	 */
+	private $_rootDirs;
 
 	/**
 	 * @var ChildDir
@@ -59,6 +65,16 @@ class FilesQueryChild {
 		$this->_childDir = $childDir;
 	}
 
+	public function setRootDirs($dirs) {
+		$this->_rootDirs = $dirs;
+	}
+	public function getRootDirs() {
+		if ($this->_rootDirs === null) {
+			return array();
+		}
+		return $this->_rootDirs;
+	}
+
 	/**
 	 * Resets the FilesQueryChild so it can be reused
 	 */
@@ -66,6 +82,8 @@ class FilesQueryChild {
 		$this->_rawRelativePath = null;
 		$this->_rawAbsolutePaths = null;
 		$this->_rawBasePaths = null;
+
+		$this->_rootDirs = null;
 
 		$this->_pathsExist = null;
 
@@ -150,7 +168,8 @@ class FilesQueryChild {
 	private function _generatePaths($dirMethod) {
 		$paths = array();
 		$methodExists = null;
-		foreach ($this->files()->rootDirs() as $rootDir) {
+
+		foreach ($this->getRootDirs() as $rootDir) {
 			if ($methodExists === null) {
 				$methodExists = method_exists($rootDir, $dirMethod);
 				if (!$methodExists) {
@@ -228,7 +247,7 @@ class FilesQueryChild {
 		if (empty($this->_filteredPathsCashed)) {
 			$filters = $this->query()->filters();
 
-			$rootDirs = $this->files()->rootDirs();
+			$rootDirs = $this->getRootDirs();
 			$pathsExist = $this->pathsExist();
 
 			$filteredPaths = array();

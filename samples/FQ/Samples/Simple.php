@@ -4,9 +4,7 @@ namespace FQ\Samples;
 
 use FQ\Dirs\ChildDir;
 use FQ\Dirs\RootDir;
-use FQ\Query\FilesQuery;
 use FQ\Query\FilesQueryBuilder;
-use FQ\Query\Selection\ChildSelection;
 
 class Simple extends SampleBootstrapper {
 
@@ -24,12 +22,9 @@ class Simple extends SampleBootstrapper {
 
 
 		$builder = new FilesQueryBuilder($this);
-		$builder->includeChildDirs('child1')->fileName('File1');
-
+		$builder->excludeRootDirs('root1')->includeChildDirs('child1')->fileName('File1');
 
 		$query = $builder->run();
-
-		//pr($builder);
 
 		return $query->listPaths();
 	}

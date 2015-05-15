@@ -50,8 +50,8 @@ class FilesTest extends AbstractFQTest {
 	public function testAddingOneRootDirAndRetrieveIt() {
 		$rootDir = $this->_addRootDir();
 		$this->assertEquals($rootDir, $this->_fqApp->getRootDirByIndex(0));
-		$this->assertEquals($rootDir, $this->_fqApp->getRootDirById(AbstractFQTest::ROOT_DIR_ID_CUSTOM));
-		$this->assertEquals($rootDir, $this->_fqApp->getRootDir(AbstractFQTest::ROOT_DIR_ID_CUSTOM));
+		$this->assertEquals($rootDir, $this->_fqApp->getRootDirById(AbstractFQTest::ROOT_DIR_DEFAULT_ID));
+		$this->assertEquals($rootDir, $this->_fqApp->getRootDir(AbstractFQTest::ROOT_DIR_DEFAULT_ID));
 		$this->assertEquals($rootDir, $this->_fqApp->getRootDir($rootDir));
 	}
 
@@ -66,7 +66,7 @@ class FilesTest extends AbstractFQTest {
 
 	public function testAddingOneRootDirAndRetrieveAllPaths() {
 		$this->_addRootDir();
-		$this->assertEquals(array(AbstractFQTest::ROOT_DIR_ABSOLUTE_DEFAULT), $this->_fqApp->getRootPaths());
+		$this->assertEquals(array(AbstractFQTest::ROOT_DIR_DEFAULT_ABSOLUTE_PATH), $this->_fqApp->getRootPaths());
 	}
 
 

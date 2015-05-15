@@ -2,7 +2,6 @@
 
 namespace FQ\Query;
 
-use FQ\Exceptions\FileQueryException;
 use FQ\Exceptions\FileQueryRequirementsException;
 
 class FilesQueryRequirements {
@@ -25,6 +24,8 @@ class FilesQueryRequirements {
 	const LEVELS_ALL = 'levels_all';
 
 	function __construct() {
+		$this->_requirements = array();
+
 		$this->registerRequirement(self::LEVELS_ONE, array($this, 'requirementAtLeastOne'));
 		$this->registerRequirement(self::LEVELS_LAST, array($this, 'requirementLast'));
 		$this->registerRequirement(self::LEVELS_ALL, array($this, 'requirementAll'));
@@ -49,15 +50,15 @@ class FilesQueryRequirements {
 
 	/**
 	 * @param string|int $requirement
-	 * @throws FileQueryException Thrown when there provided requirement is neither a string or an integer
+	 * @throws FileQueryRequirementsException Thrown when there provided requirement is neither a string or an integer
 	 * @return bool Return true when added. Returns false when it was already part of the requirements
 	 */
 	public function addRequirement($requirement) {
-		if (!is_string($requirement) || !is_int($requirement)) {
-			throw new FileQueryException(sprintf('A requirement van only be of type integer or string. Provided requirement is of type "%s"', gettype($requirement)));
+		if (!(is_string($requirement) || is_int($requirement))) {
+			throw new FileQueryRequirementsException(sprintf('A requirement van only be of type integer or string. Provided requirement is of type "%s"', gettype($requirement)));
 		}
 		if (!$this->requirementIsRegistered($requirement)) {
-			throw new FileQueryException(sprintf('Trying to add a requirement, but it isn\'t registered. Provided requirement "%s"', $requirement));
+			throw new FileQueryRequirementsException(sprintf('Trying to add a requirement, but it isn\'t registered. Provided requirement "%s"', $requirement));
 		}
 		if (!$this->hasRequirement($requirement)) {
 			$this->_requirements[] = $requirement;
@@ -101,8 +102,17 @@ class FilesQueryRequirements {
 	 * @return bool Returns true if there is at least one requirement, otherwise it will return false
 	 */
 	public function hasRequirements() {
+		return $this->countRequirements() !== 0;
+	}
+
+	/**
+	 * Count all configured requirements.
+	 *
+	 * @return int Returns the total number of requirements
+	 */
+	public function countRequirements() {
 		$requirements = $this->requirements();
-		return count($requirements) !== 0;
+		return count($requirements);
 	}
 
 	/**
@@ -120,32 +130,63 @@ class FilesQueryRequirements {
 	 * @throws FileQueryRequirementsException
 	 */
 	public function registerRequirement($id, $callable) {
-		if (!is_callable($callable, true)) {
-			throw new FileQueryRequirementsException(sprintf('Trying to register a requirement but the requirement isn\'t callable. Info "%s"', implode(', ', (array) $callable)));
+		if (is_string($callable) && !method_exists($this, $callable)) {
+			throw new FileQueryRequirementsException(sprintf('Trying to register a requirement via a string but the requirement isn\'t callable. Method name "%s"', $callable));
+		}
+		else if (is_array($callable)) {
+			$class = new \ReflectionClass($callable[0]);
+			if (!$class->hasMethod($callable[1])) {
+				throw new FileQueryRequirementsException(sprintf('Trying to register a requirement but the requirement isn\'t callable. Class name "%s", method name "%s"', get_class($callable[0]), $callable[1]));
+			}
+		}
+		else {
+			throw new FileQueryRequirementsException(sprintf('Trying to register a requirement but the requirement\'s callable isn\'t a known data-type. Must be a string or an array. Type given "%s"', gettype($callable)));
+		}
+
+		if (isset($this->_registeredRequirements[$id])) {
+			return false;
 		}
 		$this->_registeredRequirements[$id] = $callable;
 		return true;
 	}
 
 	/**
+	 * Count all registered requirements.
+	 *
+	 * @return int Returns the total number of registered requirements
+	 */
+	public function countRegisteredRequirements() {
+		return count($this->_registeredRequirements);
+	}
+
+	/**
+	 * Check whether a requirements has already been registered
+	 * @param string $id ID of the requirement
+	 * @return bool Return true if the requirement is already registered
+	 */
+	public function isRegisteredRequirement($id) {
+		return isset($this->_registeredRequirements[$id]);
+	}
+
+	/**
 	 * @param string $id
 	 * @param FilesQueryChild $child
-	 * @throws FileQueryException
+	 * @throws FileQueryRequirementsException
 	 * @return mixed
 	 */
 	public function tryRequirement($id, FilesQueryChild $child) {
-		if ($this->requirementIsRegistered($id)) {
-			throw new FileQueryException(sprintf('Trying to call a requirement, but it isn\'t registered. Provided requirement "%s"', $id), 10);
+		if (!$this->requirementIsRegistered($id)) {
+			throw new FileQueryRequirementsException(sprintf('Trying to call a requirement, but it isn\'t registered. Provided requirement "%s"', $id), 10);
 		}
 		return call_user_func($this->_registeredRequirements[$id], $child);
 	}
 
 	/**
 	 * @param FilesQueryChild $child
-	 * @return bool|FileQueryException
+	 * @return bool|FileQueryRequirementsException
 	 */
 	protected function requirementAtLeastOne(FilesQueryChild $child) {
-		if ($child->totalExistingPaths() === 0) {
+		if (!$child->totalExistingPaths() >= 1) {
 			return new FileQueryRequirementsException(sprintf('At least 1 file must be available for file "%s" in child with an id of "%s". Please create the file in any of these locations: %s', $child->relativePath(), $child->childDir()->id(), implode($child->rawAbsolutePaths())));
 		}
 		return true;
@@ -153,23 +194,27 @@ class FilesQueryRequirements {
 
 	/**
 	 * @param FilesQueryChild $child
-	 * @return bool|FileQueryException
+	 * @return bool|FileQueryRequirementsException
 	 */
 	protected function requirementLast(FilesQueryChild $child) {
-		$pathsExist = $child->pathsExist();
-		if ($child->totalExistingPaths() === 0 || $pathsExist[0] == null) {
-			return new FileQueryException(sprintf('Last file "%s" not found in child "%s" but it is required', $child->relativePath(), $child->childDir()->id()));
+		$pathsExist = array_reverse($child->pathsExist());
+		foreach ($pathsExist as $rootDir) {
+			if ($rootDir === false) {
+				return new FileQueryRequirementsException(sprintf('Last file "%s" not found in child "%s" but it is required', $child->relativePath(), $child->childDir()->id()));
+			}
+			// just check the first root dir (which is the last one because it was reversed)
+			break;
 		}
 		return true;
 	}
 
 	/**
 	 * @param FilesQueryChild $child
-	 * @return bool|FileQueryException
+	 * @return bool|FileQueryRequirementsException
 	 */
 	protected function requirementAll(FilesQueryChild $child) {
-		if ($child->totalExistingPaths() != $child->files()->totalRootDirs()) {
-			return new FileQueryException(sprintf('All "%s" children must contain a file called "%s".', $child->childDir()->id(), $child->relativePath()));
+		if ($child->totalExistingPaths() != count($child->getRootDirs())) {
+			return new FileQueryRequirementsException(sprintf('All "%s" children must contain a file called "%s".', $child->childDir()->id(), $child->relativePath()));
 		}
 		return true;
 	}
@@ -179,8 +224,10 @@ class FilesQueryRequirements {
 	 *
 	 * @param FilesQueryChild $queryChild
 	 * @param bool $throwExceptionOnFail
-	 * @throws \Exception
-	 * @return mixed Returns true if all requirements are met. Otherwise returns an un-thrown exception if 'throwExceptionOnFail' is set to false or the response from the requirement
+	 * @throws \Exception When $throwExceptionOnFail is set to true and one of the requirements fails, it will throw
+	 * the exception from that fail. Otherwise this exception will be returned
+	 * @return mixed Returns true if all requirements are met. Otherwise returns an un-thrown exception
+	 * if 'throwExceptionOnFail' is set to false or the response from the requirement
 	 */
 	public function meetsRequirements(FilesQueryChild $queryChild, $throwExceptionOnFail = true) {
 		// if there are no requirements it certainly is valid and it can be returned immediately

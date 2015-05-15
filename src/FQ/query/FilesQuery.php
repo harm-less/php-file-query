@@ -37,6 +37,11 @@ class FilesQuery {
 	private $_currentQueryChildren;
 
 	/**
+	 * @var RootDir[]
+	 */
+	private $_cachedQueryRootDirs;
+
+	/**
 	 * @var bool Indicator if the query has run or not
 	 */
 	private $_hasRun;
@@ -78,6 +83,7 @@ class FilesQuery {
 	}
 
 	public function reset() {
+		$this->_cachedQueryRootDirs = null;
 		$this->_currentQueryChildren = array();
 
 		$this->requirements()->removeAll();
@@ -185,10 +191,11 @@ class FilesQuery {
 	 */
 	public function run($fileName) {
 		$this->_queriedFileName = $fileName;
+		$rootDirsSelection = $this->_getCachedRootDirSelection();
+
 		$this->_currentQueryChildren = array();
 		foreach ($this->getCurrentChildDirSelection() as $childDir) {
-			pr($childDir);
-			$this->_currentQueryChildren[$childDir->id()] = $this->processQueryChild($childDir);
+			$this->_currentQueryChildren[$childDir->id()] = $this->processQueryChild($childDir, $rootDirsSelection);
 		}
 		$this->_hasRun = true;
 		return $this->listPaths();
@@ -198,19 +205,27 @@ class FilesQuery {
 	 * @return RootDir[]
 	 */
 	public function getCurrentRootDirSelection() {
-		return $this->_rootDirSelection->getSelection($this->files()->rootDirs());
+		return $this->getRootDirSelection()->getSelection($this->files()->rootDirs());
 	}
 
 	/**
 	 * @return ChildDir[]
 	 */
 	public function getCurrentChildDirSelection() {
-		return $this->_childDirSelection->getSelection($this->files()->childDirs());
+		return $this->getChildDirSelection()->getSelection($this->files()->childDirs());
 	}
 
-	protected function processQueryChild(ChildDir $childDir) {
+	protected function _getCachedRootDirSelection() {
+		if ($this->_cachedQueryRootDirs === null) {
+			$this->_cachedQueryRootDirs = $this->getCurrentRootDirSelection();
+		}
+		return $this->_cachedQueryRootDirs;
+	}
+
+	protected function processQueryChild(ChildDir $childDir, $rootSelection) {
 		$queryChild = $this->_getQueryChild($childDir);
 		$queryChild->reset();
+		$queryChild->setRootDirs($rootSelection);
 		if (!$this->requirements()->meetsRequirements($queryChild)) {
 			return false;
 		}

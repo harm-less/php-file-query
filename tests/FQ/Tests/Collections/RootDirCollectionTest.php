@@ -54,12 +54,12 @@ class RootDirCollectionTest extends AbstractDirCollectionTests {
 	public function testGetDir() {
 		$dir = $this->_addDirToCollection();
 		$this->assertEquals($dir, $this->dirCollection()->getDir($dir));
-		$this->assertEquals($dir, $this->dirCollection()->getDir(self::ROOT_DIR_ID_CUSTOM));
+		$this->assertEquals($dir, $this->dirCollection()->getDir(self::ROOT_DIR_DEFAULT_ID));
 		$this->assertEquals($dir, $this->dirCollection()->getDir(0));
 	}
 	public function testGetDirById() {
 		$dir = $this->_addDirToCollection();
-		$this->assertEquals($dir, $this->dirCollection()->getDirById(self::ROOT_DIR_ID_CUSTOM));
+		$this->assertEquals($dir, $this->dirCollection()->getDirById(self::ROOT_DIR_DEFAULT_ID));
 	}
 	public function testGetDirByIndex() {
 		$dir = $this->_addDirToCollection();
