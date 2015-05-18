@@ -90,7 +90,7 @@ abstract class AbstractFQTest extends PHPUnit_Framework_TestCase
 		return $this->_nonPublicMethodObject;
 	}
 
-	protected function callNonPublicMethod($name, $args) {
+	protected function callNonPublicMethod($name, $args = null) {
 		return $this->callObjectWithNonPublicMethod($this->nonPublicMethodObject(), $name, $args);
 	}
 	protected function callObjectWithNonPublicMethod($obj, $name, $args) {

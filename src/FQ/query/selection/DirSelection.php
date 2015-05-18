@@ -148,8 +148,8 @@ class DirSelection {
 				}
 			}
 			else if ($this->hasExcludedDirsByDir()) {
-				foreach ($this->getExcludedDirsByDir() as $includedDir) {
-					$dirIds[] = $includedDir->id();
+				foreach ($this->getExcludedDirsByDir() as $excludedDir) {
+					$dirIds[] = $excludedDir->id();
 				}
 			}
 
@@ -201,6 +201,8 @@ class DirSelection {
 						unset($selection[$includedDir->id()]);
 					}
 				}
+				// reset keys
+				$selection = array_values($selection);
 			}
 
 			return $selection;

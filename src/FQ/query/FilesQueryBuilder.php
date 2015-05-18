@@ -39,6 +39,15 @@ class FilesQueryBuilder  {
 	protected function getFileName() {
 		return $this->_fileName;
 	}
+	protected function _getRequirements() {
+		return $this->_requirements;
+	}
+	protected function _isReversed() {
+		return $this->_reverse === null ? false : $this->_reverse;
+	}
+	protected function _getFilters() {
+		return $this->_filters;
+	}
 
 	public function includeRootDirs($rootDirs) {
 		if (is_array($rootDirs)) {
@@ -143,14 +152,23 @@ class FilesQueryBuilder  {
 		return $this;
 	}
 
-	public function run() {
+	public function run($fileName = null) {
 		$query = $this->_files()->query($this->rootSelection(), $this->childSelection(), $this->_reset);
-		$fileName = $this->getFileName();
+		$requirements = $query->requirements();
+		$requirements->addRequirements($this->_getRequirements());
+		$query->reverse($this->_isReversed());
 
-		if (!is_string($fileName)) {
-			throw new FileQueryBuilderException('No filename has been set. Use filename() to use a filename for the query');
+		$filters = $this->_getFilters();
+		if ($filters !== null) {
+			$query->filters($filters);
 		}
-		$query->run($fileName);
+
+		$fileNameToUse = $fileName !== null ? $fileName : $this->getFileName();
+
+		if (!is_string($fileNameToUse)) {
+			throw new FileQueryBuilderException('No filename has been set. Use filename() to use a filename for the query or supply it this this run() method');
+		}
+		$query->run($fileNameToUse);
 
 		return $query;
 	}
