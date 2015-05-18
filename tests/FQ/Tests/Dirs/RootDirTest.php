@@ -16,12 +16,12 @@ class RootDirTest extends AbstractFQTest {
 
 	public function testBasePathConstructor() {
 		$rootDir = $this->_newActualRootDir();
-		$this->assertEquals(self::ROOT_DIR_DEFAULT_ABSOLUTE_PATH, $rootDir->basePath());
+		$this->assertEquals(self::ROOT_DIR_DEFAULT_BASE_PATH, $rootDir->basePath());
 	}
 
 	public function testBasePathDefault() {
 		$rootDir = $this->_newActualRootDir();
-		$this->assertEquals(self::ROOT_DIR_DEFAULT_ABSOLUTE_PATH, $rootDir->basePath());
+		$this->assertEquals(self::ROOT_DIR_DEFAULT_BASE_PATH, $rootDir->basePath());
 	}
 
 	public function testBasePathCustom() {

@@ -69,7 +69,6 @@ class FilesQuery {
 	/**
 	 * Constants determining preliminary filters types
 	 */
-	const FILTER_NONE = 'filter_none';
 	const FILTER_EXISTING = 'filter_existing';
 
 	/**

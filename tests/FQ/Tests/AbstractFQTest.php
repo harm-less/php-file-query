@@ -29,8 +29,17 @@ abstract class AbstractFQTest extends PHPUnit_Framework_TestCase
 
 	const ROOT_DIR_DEFAULT_ID = ACTUAL_ROOT_DIR_FIRST_ID;
 	const ROOT_DIR_DEFAULT_ABSOLUTE_PATH = ACTUAL_ROOT_DIR_FIRST_ABSOLUTE_PATH;
+	const ROOT_DIR_DEFAULT_BASE_PATH = 'http://www.basepath.com';
 	const ROOT_DIR_SECOND_ID = ACTUAL_ROOT_DIR_SECOND_ID;
 	const ROOT_DIR_SECOND_ABSOLUTE_PATH = ACTUAL_ROOT_DIR_SECOND_ABSOLUTE_PATH;
+	const ROOT_DIR_SECOND_BASE_PATH = 'http://www.basepath2.com';
+
+	const ROOT_DIR_FICTITIOUS_ID = 'does-not-exist-id';
+	const ROOT_DIR_FICTITIOUS_ABSOLUTE_PATH = 'abs-path-does-not-exist';
+	const ROOT_DIR_FICTITIOUS_BASE_PATH = 'base-path-does-not-exist';
+
+	const CHILD_DIR_FICTITIOUS_ID = 'does-not-exist-id';
+	const CHILD_DIR_FICTITIOUS_DIR = 'does-not-exist-dir';
 
 	const ROOT_DIR_ID_CUSTOM = 'rootDir';
 	const CHILD_DIR_DEFAULT = ACTUAL_CHILD_DIR;
@@ -85,14 +94,14 @@ abstract class AbstractFQTest extends PHPUnit_Framework_TestCase
 	protected function __newRootDir($id = self::ROOT_DIR_ID_CUSTOM, $absoluteDir = self::ROOT_DIR_DEFAULT_ABSOLUTE_PATH, $basePath = null, $required = false) {
 		return new RootDir($id, $absoluteDir, $basePath, $required);
 	}
-	protected function _newActualRootDir($basePath = null, $required = false) {
+	protected function _newActualRootDir($basePath = self::ROOT_DIR_DEFAULT_BASE_PATH, $required = false) {
 		return $this->__newRootDir(self::ROOT_DIR_DEFAULT_ID, self::ROOT_DIR_DEFAULT_ABSOLUTE_PATH, $basePath, $required);
 	}
-	protected function _newActualRootDirSecond($basePath = null, $required = false) {
+	protected function _newActualRootDirSecond($basePath = self::ROOT_DIR_SECOND_BASE_PATH, $required = false) {
 		return $this->__newRootDir(self::ROOT_DIR_SECOND_ID, self::ROOT_DIR_SECOND_ABSOLUTE_PATH, $basePath, $required);
 	}
 	protected function _newFictitiousRootDir($required = true) {
-		return $this->__newRootDir('does_not_exist', 'does_not_exist', $required);
+		return $this->__newRootDir(self::ROOT_DIR_FICTITIOUS_ID, self::ROOT_DIR_FICTITIOUS_ABSOLUTE_PATH, self::ROOT_DIR_FICTITIOUS_BASE_PATH, $required);
 	}
 
 	protected function __newChildDir($id = self::CHILD_DIR_DEFAULT, $relativePathFromRootDirs = self::CHILD_DIR_DEFAULT, $required = false) {
@@ -102,6 +111,6 @@ abstract class AbstractFQTest extends PHPUnit_Framework_TestCase
 		return $this->__newChildDir(self::CHILD_DIR_DEFAULT, self::CHILD_DIR_DEFAULT, $required);
 	}
 	protected function _newFictitiousChildDir($required = false) {
-		return $this->__newChildDir('does_not_exist', 'does_not_exist', $required);
+		return $this->__newChildDir(self::CHILD_DIR_FICTITIOUS_ID, self::CHILD_DIR_FICTITIOUS_DIR, $required);
 	}
 }

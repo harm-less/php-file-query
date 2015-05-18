@@ -259,9 +259,6 @@ class FilesQueryChild {
 				foreach ($rootDirs as $rootDir) {
 					$rootDirId = $rootDir->id();
 					switch ($filter) {
-						case FilesQuery::FILTER_NONE :
-							$filteredPaths[$filter][$rootDirId] = true;
-							break;
 						case FilesQuery::FILTER_EXISTING :
 							$filteredPaths[$filter][$rootDirId] = $pathsExist[$rootDirId];
 							break;
