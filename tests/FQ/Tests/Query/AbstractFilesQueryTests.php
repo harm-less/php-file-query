@@ -3,6 +3,7 @@
 namespace FQ\Tests\Query;
 
 use FQ\Collections\Dirs\DirCollection;
+use FQ\Dirs\ChildDir;
 use FQ\Query\FilesQuery;
 use FQ\Query\FilesQueryChild;
 use FQ\Tests\AbstractFQTest;
@@ -26,6 +27,9 @@ class AbstractFilesQueryTests extends AbstractFQTest {
 		// Create a new query app,
 		$this->_query = $this->_fqApp->query();
 		$this->_queryChild = $this->_newActualQueryChild();
+
+		$this->files()->addRootDir($this->rootDir());
+		$this->files()->addChildDir($this->childDir());
 	}
 
 	/**
@@ -53,8 +57,8 @@ class AbstractFilesQueryTests extends AbstractFQTest {
 	}
 
 	protected function _newActualQueryChild() {
-		$queryChild = new FilesQueryChild($this->_fqApp->query(), $this->_newActualChildDir());
-		$queryChild->setRootDirs(array($this->_newActualRootDir()));
+		$queryChild = new FilesQueryChild($this->_fqApp->query(), $this->_childDir);
+		$queryChild->setRootDirs(array($this->_rootDir));
 		return $queryChild;
 	}
 }

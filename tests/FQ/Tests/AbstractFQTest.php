@@ -22,10 +22,14 @@ abstract class AbstractFQTest extends PHPUnit_Framework_TestCase
 	 */
 	protected $_fqApp;
 
+	protected $_rootDir;
+	protected $_childDir;
+
 	protected $_nonPublicMethodObject;
 
 	const DIR_ABSOLUTE_DEFAULT = __DIR__;
-	const DIR_CUSTOM_ID = 'custom_id';
+
+	const ROOT_DIR_ID_CUSTOM = 'rootDir';
 
 	const ROOT_DIR_DEFAULT_ID = ACTUAL_ROOT_DIR_FIRST_ID;
 	const ROOT_DIR_DEFAULT_ABSOLUTE_PATH = ACTUAL_ROOT_DIR_FIRST_ABSOLUTE_PATH;
@@ -38,11 +42,11 @@ abstract class AbstractFQTest extends PHPUnit_Framework_TestCase
 	const ROOT_DIR_FICTITIOUS_ABSOLUTE_PATH = 'abs-path-does-not-exist';
 	const ROOT_DIR_FICTITIOUS_BASE_PATH = 'base-path-does-not-exist';
 
+	const CHILD_DIR_DEFAULT_ID = 'child1';
+	const CHILD_DIR_DEFAULT_DIR = ACTUAL_CHILD_DIR;
+
 	const CHILD_DIR_FICTITIOUS_ID = 'does-not-exist-id';
 	const CHILD_DIR_FICTITIOUS_DIR = 'does-not-exist-dir';
-
-	const ROOT_DIR_ID_CUSTOM = 'rootDir';
-	const CHILD_DIR_DEFAULT = ACTUAL_CHILD_DIR;
 
 
 	/**
@@ -56,6 +60,27 @@ abstract class AbstractFQTest extends PHPUnit_Framework_TestCase
 		// Create a new FQ app,
 		// since we need one pretty much everywhere
 		$this->_fqApp = new Files();
+
+		$this->_rootDir = $this->_newActualRootDir();
+		$this->_childDir = $this->_newActualChildDir();
+	}
+
+	protected function files() {
+		return $this->_fqApp;
+	}
+
+	/**
+	 * @return RootDir
+	 */
+	protected function rootDir() {
+		return $this->_rootDir;
+	}
+
+	/**
+	 * @return ChildDir
+	 */
+	protected function childDir() {
+		return $this->_childDir;
 	}
 
 	protected function nonPublicMethodObject($object = null) {
@@ -81,11 +106,11 @@ abstract class AbstractFQTest extends PHPUnit_Framework_TestCase
 		return $result;
 	}
 
-	protected function __newDir($id = self::DIR_CUSTOM_ID, $dir = self::DIR_ABSOLUTE_DEFAULT, $required = false) {
+	protected function __newDir($id = self::CHILD_DIR_DEFAULT_ID, $dir = self::DIR_ABSOLUTE_DEFAULT, $required = false) {
 		return new Dir($id, $dir, $required);
 	}
 	protected function _newActualDir($required = true) {
-		return $this->__newDir(self::DIR_CUSTOM_ID, self::DIR_ABSOLUTE_DEFAULT, $required);
+		return $this->__newDir(self::CHILD_DIR_DEFAULT_ID, self::DIR_ABSOLUTE_DEFAULT, $required);
 	}
 	protected function _newFictitiousDir($required = true) {
 		return $this->__newDir('does_not_exist', $required);
@@ -100,15 +125,15 @@ abstract class AbstractFQTest extends PHPUnit_Framework_TestCase
 	protected function _newActualRootDirSecond($basePath = self::ROOT_DIR_SECOND_BASE_PATH, $required = false) {
 		return $this->__newRootDir(self::ROOT_DIR_SECOND_ID, self::ROOT_DIR_SECOND_ABSOLUTE_PATH, $basePath, $required);
 	}
-	protected function _newFictitiousRootDir($required = true) {
+	protected function _newFictitiousRootDir($required = false) {
 		return $this->__newRootDir(self::ROOT_DIR_FICTITIOUS_ID, self::ROOT_DIR_FICTITIOUS_ABSOLUTE_PATH, self::ROOT_DIR_FICTITIOUS_BASE_PATH, $required);
 	}
 
-	protected function __newChildDir($id = self::CHILD_DIR_DEFAULT, $relativePathFromRootDirs = self::CHILD_DIR_DEFAULT, $required = false) {
+	protected function __newChildDir($id = self::CHILD_DIR_DEFAULT_DIR, $relativePathFromRootDirs = self::CHILD_DIR_DEFAULT_DIR, $required = false) {
 		return new ChildDir($id, $relativePathFromRootDirs, $required);
 	}
 	protected function _newActualChildDir($required = true) {
-		return $this->__newChildDir(self::CHILD_DIR_DEFAULT, self::CHILD_DIR_DEFAULT, $required);
+		return $this->__newChildDir(self::CHILD_DIR_DEFAULT_DIR, self::CHILD_DIR_DEFAULT_DIR, $required);
 	}
 	protected function _newFictitiousChildDir($required = false) {
 		return $this->__newChildDir(self::CHILD_DIR_FICTITIOUS_ID, self::CHILD_DIR_FICTITIOUS_DIR, $required);

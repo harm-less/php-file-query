@@ -4,13 +4,11 @@ namespace FQ\Tests\Query;
 
 use FQ\Query\FilesQuery;
 use FQ\Query\FilesQueryChild;
-use FQ\Query\FilesQueryRequirements;
 
 class FilesQueryChildTest extends AbstractFilesQueryTests {
 
 
-	protected function setUp()
-	{
+	protected function setUp() {
 		parent::setUp();
 
 		$this->nonPublicMethodObject($this->queryChild());
@@ -154,11 +152,32 @@ class FilesQueryChildTest extends AbstractFilesQueryTests {
 		), $queryChild->filteredBasePaths());
 	}
 
-	/*public function testResetAfterQuery() {
+	public function testPathsExist() {
+		$queryChild = $this->queryChild();
+		$this->runQuery();
+		foreach ($queryChild->filteredAbsolutePaths() as $path) {
+			$this->assertFileExists($path);
+		}
+	}
+
+	public function testTotalExistingPaths() {
+		$queryChild = $this->queryChild();
+		$this->runQuery();
+		$this->assertEquals(1, $queryChild->totalExistingPaths());
+	}
+
+	public function testResetAfterQuery() {
 		$queryChild = $this->queryChild();
 		$this->runQuery();
 		$this->assertEquals(array(
 			self::ROOT_DIR_DEFAULT_ID => self::ROOT_DIR_DEFAULT_BASE_PATH . '/child1/File2.php'
 		), $queryChild->rawBasePaths());
-	}*/
+		$queryChild->reset();
+		$this->assertEquals(array(), $queryChild->rawBasePaths());
+		$queryChild->setRootDirs(array($this->_newActualRootDir()));
+		$this->runQuery();
+		$this->assertEquals(array(
+			self::ROOT_DIR_DEFAULT_ID => self::ROOT_DIR_DEFAULT_BASE_PATH . '/child1/File2.php'
+		), $queryChild->rawBasePaths());
+	}
 }

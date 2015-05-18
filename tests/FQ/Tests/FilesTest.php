@@ -98,8 +98,8 @@ class FilesTest extends AbstractFQTest {
 	public function testAddingOneChildDirAndRetrieveIt() {
 		$childDir = $this->_addChildDir();
 		$this->assertEquals($childDir, $this->_fqApp->getChildDirByIndex(0));
-		$this->assertEquals($childDir, $this->_fqApp->getChildDirById(AbstractFQTest::CHILD_DIR_DEFAULT));
-		$this->assertEquals($childDir, $this->_fqApp->getChildDir(AbstractFQTest::CHILD_DIR_DEFAULT));
+		$this->assertEquals($childDir, $this->_fqApp->getChildDirById(AbstractFQTest::CHILD_DIR_DEFAULT_DIR));
+		$this->assertEquals($childDir, $this->_fqApp->getChildDir(AbstractFQTest::CHILD_DIR_DEFAULT_DIR));
 		$this->assertEquals($childDir, $this->_fqApp->getChildDir($childDir));
 	}
 
@@ -114,7 +114,7 @@ class FilesTest extends AbstractFQTest {
 
 	public function testAddingOneChildDirAndRetrieveAllPaths() {
 		$this->_addChildDir();
-		$this->assertEquals(array(AbstractFQTest::CHILD_DIR_DEFAULT), $this->_fqApp->getChildPaths());
+		$this->assertEquals(array(AbstractFQTest::CHILD_DIR_DEFAULT_DIR), $this->_fqApp->getChildPaths());
 	}
 
 	public function testIfFilesIsInvalidAfterAddingRequiredChildDirThatDoNotExist() {

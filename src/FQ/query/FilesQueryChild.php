@@ -208,21 +208,6 @@ class FilesQueryChild {
 	}
 
 	/**
-	 * This will filter a set of paths using the configured filters
-	 *
-	 * @param string[] $paths A collection of paths that need filtering
-	 * @return string[] Filtered paths
-	 */
-	private function _filterPaths($paths) {
-		foreach ($this->_cachedFilterPaths() as $filter) {
-			foreach ($filter as $rootDirId => $isAllowed) {
-				if ($isAllowed === false) unset($paths[$rootDirId]);
-			}
-		}
-		return $paths;
-	}
-
-	/**
 	 * An array that returns a complete mirror of all the possible paths but each entry contains a boolean to indicate
 	 * if the path exists
 	 *
@@ -238,6 +223,27 @@ class FilesQueryChild {
 			$this->_pathsExist = $arr;
 		}
 		return $this->_pathsExist;
+	}
+	/**
+	 * @return int Amount of existing paths within this child query
+	 */
+	public function totalExistingPaths() {
+		return count(array_filter($this->pathsExist()));
+	}
+
+	/**
+	 * This will filter a set of paths using the configured filters
+	 *
+	 * @param string[] $paths A collection of paths that need filtering
+	 * @return string[] Filtered paths
+	 */
+	private function _filterPaths($paths) {
+		foreach ($this->_cachedFilterPaths() as $filter) {
+			foreach ($filter as $rootDirId => $isAllowed) {
+				if ($isAllowed === false) unset($paths[$rootDirId]);
+			}
+		}
+		return $paths;
 	}
 
 	/**
@@ -268,12 +274,5 @@ class FilesQueryChild {
 			$this->_filteredPathsCashed = $filteredPaths;
 		}
 		return $this->_filteredPathsCashed;
-	}
-
-	/**
-	 * @return int Amount of existing paths within this child query
-	 */
-	public function totalExistingPaths() {
-		return count(array_filter($this->pathsExist()));
 	}
 } 

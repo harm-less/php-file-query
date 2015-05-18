@@ -54,12 +54,12 @@ class ChildDirCollectionTest extends AbstractDirCollectionTests {
 	public function testGetDir() {
 		$dir = $this->_addDirToCollection();
 		$this->assertEquals($dir, $this->dirCollection()->getDir($dir));
-		$this->assertEquals($dir, $this->dirCollection()->getDir(self::CHILD_DIR_DEFAULT));
+		$this->assertEquals($dir, $this->dirCollection()->getDir(self::CHILD_DIR_DEFAULT_DIR));
 		$this->assertEquals($dir, $this->dirCollection()->getDir(0));
 	}
 	public function testGetDirById() {
 		$dir = $this->_addDirToCollection();
-		$this->assertEquals($dir, $this->dirCollection()->getDirById(self::CHILD_DIR_DEFAULT));
+		$this->assertEquals($dir, $this->dirCollection()->getDirById(self::CHILD_DIR_DEFAULT_DIR));
 	}
 	public function testGetDirByIndex() {
 		$dir = $this->_addDirToCollection();

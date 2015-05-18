@@ -47,6 +47,11 @@ class FilesQuery {
 	private $_hasRun;
 
 	/**
+	 * @var \Exception
+	 */
+	private $_queryError;
+
+	/**
 	 * @var string Active file name in the latest query
 	 */
 	private $_queriedFileName;
@@ -91,6 +96,7 @@ class FilesQuery {
 		$this->_queriedFileName = null;
 		$this->_reverse = false;
 		$this->_hasRun = false;
+		$this->_queryError = null;
 	}
 	public function resetSelection() {
 		$this->getRootDirSelection()->reset();
@@ -106,9 +112,13 @@ class FilesQuery {
 
 	/**
 	 * @param bool $reverse Reverse query results
+	 * @return bool
 	 */
-	public function reverse($reverse) {
-		$this->_reverse = $reverse;
+	public function reverse($reverse = null) {
+		if (is_bool($reverse)) {
+			$this->_reverse = $reverse;
+		}
+		return $this->_reverse;
 	}
 
 	/**
@@ -126,25 +136,26 @@ class FilesQuery {
 			else {
 				$this->_filters = $newFilters;
 			}
+			$this->_filters = array_unique($this->_filters);
 		}
 		return $this->_filters;
 	}
 
-	public function setRootDirSelection(RootSelection $selection = null) {
+	public function setRootDirSelection(RootSelection $selection) {
 		$this->_rootDirSelection = $selection;
 	}
-	public function getRootDirSelection($createNewSelection = true) {
-		if ($this->_rootDirSelection === null && $createNewSelection) {
+	public function getRootDirSelection($createNewSelection = false) {
+		if ($this->_rootDirSelection === null || $createNewSelection) {
 			$this->_rootDirSelection = new RootSelection();
 		}
 		return $this->_rootDirSelection;
 	}
 
-	public function setChildDirSelection(ChildSelection $selection = null) {
+	public function setChildDirSelection(ChildSelection $selection) {
 		$this->_childDirSelection = $selection;
 	}
-	public function getChildDirSelection($createNewSelection = true) {
-		if ($this->_childDirSelection === null && $createNewSelection) {
+	public function getChildDirSelection($createNewSelection = false) {
+		if ($this->_childDirSelection === null || $createNewSelection) {
 			$this->_childDirSelection = new ChildSelection();
 		}
 		return $this->_childDirSelection;
@@ -173,11 +184,17 @@ class FilesQuery {
 	public function hasRun() {
 		return $this->_hasRun;
 	}
+	public function queryError() {
+		return $this->_queryError;
+	}
+	public function hasQueryError() {
+		return $this->queryError() !== null;
+	}
 	public function isReversed() {
 		return $this->_reverse;
 	}
 
-	protected function _hasRun() {
+	protected function _hasRunCheck() {
 		if (!$this->hasRun()) {
 			throw new FileQueryException('You must first call the "run" method before you can retrieve query information');
 		}
@@ -194,7 +211,12 @@ class FilesQuery {
 
 		$this->_currentQueryChildren = array();
 		foreach ($this->getCurrentChildDirSelection() as $childDir) {
-			$this->_currentQueryChildren[$childDir->id()] = $this->processQueryChild($childDir, $rootDirsSelection);
+			$queryChild = $this->_processQueryChild($childDir, $rootDirsSelection);
+			$meetsRequirements = $this->requirements()->meetsRequirements($queryChild, false);
+			if ($meetsRequirements !== true) {
+				$this->_queryError = $meetsRequirements;
+			}
+			$this->_currentQueryChildren[$childDir->id()] = $queryChild;
 		}
 		$this->_hasRun = true;
 		return $this->listPaths();
@@ -221,13 +243,10 @@ class FilesQuery {
 		return $this->_cachedQueryRootDirs;
 	}
 
-	protected function processQueryChild(ChildDir $childDir, $rootSelection) {
+	protected function _processQueryChild(ChildDir $childDir, $rootSelection) {
 		$queryChild = $this->_getQueryChild($childDir);
 		$queryChild->reset();
 		$queryChild->setRootDirs($rootSelection);
-		if (!$this->requirements()->meetsRequirements($queryChild)) {
-			return false;
-		}
 		return $queryChild;
 	}
 
@@ -240,7 +259,9 @@ class FilesQuery {
 			return $this->_cachedQueryChildren[$childDir->id()];
 		}
 		else {
-			return new FilesQueryChild($this, $childDir);
+			$queryChild = new FilesQueryChild($this, $childDir);
+			$this->_cachedQueryChildren[$childDir->id()] = $queryChild;
+			return $queryChild;
 		}
 	}
 
@@ -250,9 +271,7 @@ class FilesQuery {
 	 * @return null|string[]
 	 */
 	public function listPaths() {
-		if (!$this->_hasRun()) {
-			return false;
-		}
+		$this->_hasRunCheck();
 
 		$paths = array();
 		foreach($this->queryChildDirs() as $childQuery) {
@@ -270,9 +289,7 @@ class FilesQuery {
 	 * @return string[]
 	 */
 	public function listBasePaths() {
-		if (!$this->_hasRun()) {
-			return false;
-		}
+		$this->_hasRunCheck();
 
 		$paths = array();
 		foreach($this->queryChildDirs() as $childQuery) {

@@ -37,8 +37,8 @@ class DirCollectionTest extends AbstractDirCollectionTests {
 
 	public function testGetDirByCustomId() {
 		$dir = $this->_addDirToCollection();
-		$dir->id(self::DIR_CUSTOM_ID);
-		$this->assertEquals($dir, $this->dirCollection()->getDirById(self::DIR_CUSTOM_ID));
+		$dir->id(self::CHILD_DIR_DEFAULT_ID);
+		$this->assertEquals($dir, $this->dirCollection()->getDirById(self::CHILD_DIR_DEFAULT_ID));
 	}
 	public function testGetDirByIdThatDoesNotExist() {
 		$this->assertNull($this->dirCollection()->getDirById('id_that_does_not_exist'));
@@ -66,7 +66,7 @@ class DirCollectionTest extends AbstractDirCollectionTests {
 	public function testGetDir() {
 		$dir = $this->_addDirToCollection();
 		$this->assertEquals($dir, $this->dirCollection()->getDir($dir));
-		$this->assertEquals($dir, $this->dirCollection()->getDir(self::DIR_CUSTOM_ID));
+		$this->assertEquals($dir, $this->dirCollection()->getDir(self::CHILD_DIR_DEFAULT_ID));
 		$this->assertEquals($dir, $this->dirCollection()->getDir(0));
 		$this->assertNull($this->dirCollection()->getDir(null));
 	}

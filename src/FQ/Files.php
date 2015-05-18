@@ -317,8 +317,8 @@ class Files {
 		if ($resetSelection) {
 			$query->resetSelection();
 		}
-		$query->setRootDirSelection($rootDirs);
-		$query->setChildDirSelection($children);
+		if ($rootDirs) $query->setRootDirSelection($rootDirs);
+		if ($children) $query->setChildDirSelection($children);
 		return $query;
 	}
 
