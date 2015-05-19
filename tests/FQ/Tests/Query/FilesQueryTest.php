@@ -220,6 +220,40 @@ class FilesQueryTest extends AbstractFilesQueryTests {
 			}
 			$index++;
 		}
+
+		$rawPaths = $query->listRawPaths();
+		$index = 0;
+		foreach ($paths as $rootDirId => $path) {
+			if ($index === 0) {
+				$this->assertEquals(self::ROOT_DIR_DEFAULT_ID, $rootDirId);
+				$this->assertEquals(self::ROOT_DIR_DEFAULT_BASE_PATH . '/child1/File1.php', $path);
+			}
+			else if ($index === 1) {
+				$this->assertEquals(self::ROOT_DIR_SECOND_ID, $rootDirId);
+				$this->assertEquals(self::ROOT_DIR_SECOND_BASE_PATH . '/child1/File1.php', $path);
+			}
+			$index++;
+		}
+	}
+
+	public function testListRawPathsWithReversedSetToTrue() {
+		$this->files()->addRootDir($this->_newActualRootDirSecond());
+		$query = $this->query();
+		$query->reverse(true);
+		$this->runQuery('File1');
+		$rawPaths = $query->listRawPaths();
+		$index = 0;
+		foreach ($rawPaths as $rootDirId => $path) {
+			if ($index === 0) {
+				$this->assertEquals(self::ROOT_DIR_DEFAULT_ID, $rootDirId);
+				$this->assertEquals(self::ROOT_DIR_DEFAULT_ABSOLUTE_PATH . '/child1/File1.php', $path);
+			}
+			else if ($index === 1) {
+				$this->assertEquals(self::ROOT_DIR_SECOND_ID, $rootDirId);
+				$this->assertEquals(self::ROOT_DIR_SECOND_ABSOLUTE_PATH . '/child1/File1.php', $path);
+			}
+			$index++;
+		}
 	}
 
 	public function testHasPathsWhenQueryHasNotRan() {

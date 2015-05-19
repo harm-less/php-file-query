@@ -214,6 +214,7 @@ class FilesQueryRequirements {
 		}
 
 		if (!$oneExists) {
+			var_dump($lastRootDirId);
 			if ($lastRootDirId === null) {
 				return new FileQueryRequirementsException('Query requires at least one file to exist in at least one child directory, but there isn\'t even a root directory. Make sure you have at least one root directory in your query');
 			}

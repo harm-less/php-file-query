@@ -164,6 +164,12 @@ class FilesQueryRequirementsTest extends AbstractFilesQueryTests {
 		$success = $this->callNonPublicMethod('requirementLast', array($this->query()));
 		$this->assertTrue($success);
 	}
+	public function testRequirementLastFailureNoRootDir() {
+		$this->setExpectedException('\FQ\Exceptions\FileQueryRequirementsException', 'Query requires at least one file to exist in at least one child directory, but there isn\'t even a root directory. Make sure you have at least one root directory in your query');
+		$this->query()->getRootDirSelection()->excludeDirById(self::ROOT_DIR_DEFAULT_ID);
+		$this->runQuery();
+		$this->callNonPublicMethod('requirementLast', array($this->query()));
+	}
 	public function testRequirementLastFailure() {
 		$this->setExpectedException('\FQ\Exceptions\FileQueryRequirementsException');
 		$this->files()->addRootDir($this->_newActualRootDirSecond());
