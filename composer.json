@@ -1,8 +1,8 @@
 {
 	"name": "harm-less/file-query",
 	"type": "library",
-	"description": "Allows loading assets across multiple extended but individual applications",
-	"keywords": ["loading", "assets", "autoloading"],
+	"description": "Allows loading/including assets across multiple extended, but individually set up, applications",
+	"keywords": ["loading", "autoloading", "include", "require"],
 	"homepage": "http://github.com/harm-less/file-query",
 	"license": "MIT",
 	"authors": [
