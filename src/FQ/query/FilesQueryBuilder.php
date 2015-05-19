@@ -18,6 +18,7 @@ class FilesQueryBuilder  {
 	private $_requirements;
 	private $_filters;
 	private $_reverse;
+	private $_showErrors;
 	private $_reset;
 
 	function __construct(Files $files) {
@@ -47,6 +48,9 @@ class FilesQueryBuilder  {
 	}
 	protected function _getFilters() {
 		return $this->_filters;
+	}
+	protected function _showErrors() {
+		return $this->_showErrors === null ? true : $this->_showErrors;
 	}
 
 	public function includeRootDirs($rootDirs) {
@@ -152,6 +156,11 @@ class FilesQueryBuilder  {
 		return $this;
 	}
 
+	public function showErrors($showErrors) {
+		$this->_showErrors = $showErrors;
+		return $this;
+	}
+
 	public function run($fileName = null) {
 		$query = $this->_files()->query($this->rootSelection(), $this->childSelection(), $this->_reset);
 		$requirements = $query->requirements();
@@ -168,8 +177,10 @@ class FilesQueryBuilder  {
 		if (!is_string($fileNameToUse)) {
 			throw new FileQueryBuilderException('No filename has been set. Use filename() to use a filename for the query or supply it this this run() method');
 		}
-		$query->run($fileNameToUse);
-
+		$result = $query->run($fileNameToUse);
+		if ($result !== true && $this->_showErrors()) {
+			throw $query->queryError();
+		}
 		return $query;
 	}
 }

@@ -117,6 +117,12 @@ class FilesQueryBuilderTest extends AbstractFilesQueryTests {
 		$this->assertFalse($this->callNonPublicMethod('_isReversed'));
 	}
 
+	public function testShowErrors() {
+		$this->setExpectedException('FQ\Exceptions\FileQueryRequirementsException');
+		$builder = $this->builder();
+		$builder->showErrors(true)->addRequirement(FilesQueryRequirements::LEVELS_ONE)->run('does-not-exist');
+	}
+
 	public function testFilter() {
 		$builder = $this->builder();
 		$this->assertNull($this->callNonPublicMethod('_getFilters'));

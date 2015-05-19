@@ -8,6 +8,9 @@ $autoloader = require __DIR__ . '/vendor/autoload.php';
 
 $sampleSimple = new \FQ\Samples\Simple();
 pr($sampleSimple->queryFile1FromChild1());
+pr($sampleSimple->queryFile1FromRoot1AndFromChild1());
+pr($sampleSimple->queryFile1InReverse());
+pr($sampleSimple->queryNonExistingFileWithRequirement());
 
 
 function pr($var) {

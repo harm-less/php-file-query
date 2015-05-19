@@ -3,12 +3,13 @@
 namespace FQ\Tests\Samples;
 
 use FQ\Samples\SampleBootstrapper;
+use FQ\Tests\AbstractFQTest;
 use PHPUnit_Framework_TestCase;
 
 /**
  * Base test class for PHP Unit testing
  */
-abstract class AbstractSampleTest extends PHPUnit_Framework_TestCase
+abstract class AbstractSampleTest extends AbstractFQTest
 {
 
 	/**
@@ -17,7 +18,7 @@ abstract class AbstractSampleTest extends PHPUnit_Framework_TestCase
 	 *
 	 * @type SampleBootstrapper
 	 */
-	protected $sample;
+	protected $_sample;
 
 	protected $sampleClassName;
 
@@ -39,6 +40,10 @@ abstract class AbstractSampleTest extends PHPUnit_Framework_TestCase
 		// Create a new FQ app,
 		// since we need one pretty much everywhere
 		$className = $this->sampleClassName;
-		$this->sample = new $className();
+		$this->_sample = new $className();
+	}
+
+	protected function sample() {
+		return $this->_sample;
 	}
 }

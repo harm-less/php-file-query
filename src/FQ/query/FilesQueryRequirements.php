@@ -187,7 +187,7 @@ class FilesQueryRequirements {
 	 */
 	protected function requirementAtLeastOne(FilesQueryChild $child) {
 		if (!$child->totalExistingPaths() >= 1) {
-			return new FileQueryRequirementsException(sprintf('At least 1 file must be available for file "%s" in child with an id of "%s". Please create the file in any of these locations: %s', $child->relativePath(), $child->childDir()->id(), implode($child->rawAbsolutePaths())));
+			return new FileQueryRequirementsException(sprintf('At least 1 file must be available for file "%s" in child with an id of "%s". Please create the file in any of these locations: "%s"', $child->relativePath(), $child->childDir()->id(), implode('", "', $child->rawAbsolutePaths())));
 		}
 		return true;
 	}

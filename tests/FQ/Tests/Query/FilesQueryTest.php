@@ -203,6 +203,25 @@ class FilesQueryTest extends AbstractFilesQueryTests {
 			self::ROOT_DIR_DEFAULT_ID => self::ROOT_DIR_DEFAULT_BASE_PATH . '/child1/File2.php'
 		), $query->listBasePaths());
 	}
+	public function testListBasePathsWithReversedSetToTrue() {
+		$this->files()->addRootDir($this->_newActualRootDirSecond());
+		$query = $this->query();
+		$query->reverse(true);
+		$this->runQuery('File1');
+		$paths = $query->listBasePaths();
+		$index = 0;
+		foreach ($paths as $rootDirId => $path) {
+			if ($index === 0) {
+				$this->assertEquals(self::ROOT_DIR_DEFAULT_ID, $rootDirId);
+				$this->assertEquals(self::ROOT_DIR_DEFAULT_BASE_PATH . '/child1/File1.php', $path);
+			}
+			else if ($index === 1) {
+				$this->assertEquals(self::ROOT_DIR_SECOND_ID, $rootDirId);
+				$this->assertEquals(self::ROOT_DIR_SECOND_BASE_PATH . '/child1/File1.php', $path);
+			}
+			$index++;
+		}
+	}
 
 	public function testHasPathsWhenQueryHasNotRan() {
 		$this->setExpectedException('FQ\Exceptions\FileQueryException', 'You must first call the "run" method before you can retrieve query information');

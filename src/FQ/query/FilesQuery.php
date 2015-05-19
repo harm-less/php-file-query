@@ -280,6 +280,9 @@ class FilesQuery {
 				$paths = array_merge_recursive($paths, $childQuery->filteredAbsolutePaths());
 			}
 		}
+		if ($this->isReversed()) {
+			$paths = $this->reversePaths($paths);
+		}
 		return $paths;
 	}
 
@@ -295,7 +298,14 @@ class FilesQuery {
 		foreach($this->queryChildDirs() as $childQuery) {
 			$paths = array_merge($paths, $childQuery->filteredBasePaths());
 		}
+		if ($this->isReversed()) {
+			$paths = $this->reversePaths($paths);
+		}
 		return $paths;
+	}
+
+	public function reversePaths($paths) {
+		return array_reverse($paths);
 	}
 
 	/**
