@@ -33,9 +33,17 @@ class Simple extends SampleBootstrapper {
 		return $builder->reverse(true)->run('File1')->listPaths();
 	}
 
-	public function queryNonExistingFileWithRequirement() {
+	public function queryNonExistingFileWithRequirementOne() {
 		$builder = new FilesQueryBuilder($this);
-		return $builder->addRequirement(FilesQueryRequirements::LEVELS_ONE)->run('does-not-exist')->listPaths();
+		return $builder->addRequirement(FilesQueryRequirements::REQUIRE_ONE)->run('File1')->listPaths();
 	}
 
+	public function queryNonExistingFileWithRequirementLast() {
+		$builder = new FilesQueryBuilder($this);
+		return $builder->addRequirement(FilesQueryRequirements::REQUIRE_LAST)->run('File1')->listPaths();
+	}
+	public function queryNonExistingFileWithRequirementAll() {
+		$builder = new FilesQueryBuilder($this);
+		return $builder->addRequirement(FilesQueryRequirements::REQUIRE_ALL)->run('File1')->listPaths();
+	}
 }

@@ -12,8 +12,8 @@ class FilesQueryRequirementsTest extends AbstractFilesQueryTests {
 	 */
 	protected $_requirements;
 
-	const DEFAULT_REQUIREMENT = FilesQueryRequirements::LEVELS_ONE;
-	const SECOND_REQUIREMENT = FilesQueryRequirements::LEVELS_LAST;
+	const DEFAULT_REQUIREMENT = FilesQueryRequirements::REQUIRE_ONE;
+	const SECOND_REQUIREMENT = FilesQueryRequirements::REQUIRE_LAST;
 	const CUSTOM_REQUIREMENT_ID = 'custom_requirement';
 	const CUSTOM_REQUIREMENT_CALLABLE = 'customRequirementCallableMethod';
 
@@ -32,9 +32,9 @@ class FilesQueryRequirementsTest extends AbstractFilesQueryTests {
 		$this->assertNotNull($filesQueryRequirements);
 		$this->assertTrue($filesQueryRequirements instanceof FilesQueryRequirements);
 		$this->assertEquals(3, $filesQueryRequirements->countRegisteredRequirements());
-		$this->assertTrue($filesQueryRequirements->isRegisteredRequirement(FilesQueryRequirements::LEVELS_ALL));
-		$this->assertTrue($filesQueryRequirements->isRegisteredRequirement(FilesQueryRequirements::LEVELS_LAST));
-		$this->assertTrue($filesQueryRequirements->isRegisteredRequirement(FilesQueryRequirements::LEVELS_ONE));
+		$this->assertTrue($filesQueryRequirements->isRegisteredRequirement(FilesQueryRequirements::REQUIRE_ALL));
+		$this->assertTrue($filesQueryRequirements->isRegisteredRequirement(FilesQueryRequirements::REQUIRE_LAST));
+		$this->assertTrue($filesQueryRequirements->isRegisteredRequirement(FilesQueryRequirements::REQUIRE_ONE));
 	}
 
 	public function testAddRequirements() {
@@ -150,84 +150,84 @@ class FilesQueryRequirementsTest extends AbstractFilesQueryTests {
 
 	public function testRequirementAtLeastOneSuccess() {
 		$this->runQuery();
-		$success = $this->callNonPublicMethod('requirementAtLeastOne', array($this->_queryChild));
+		$success = $this->callNonPublicMethod('requirementAtLeastOne', array($this->query()));
 		$this->assertTrue($success);
 	}
 	public function testRequirementAtLeastOneFailure() {
 		$this->setExpectedException('\FQ\Exceptions\FileQueryRequirementsException');
 		$this->runQuery('nonExistentFile');
-		$this->callNonPublicMethod('requirementAtLeastOne', array($this->_queryChild));
+		$this->callNonPublicMethod('requirementAtLeastOne', array($this->query()));
 	}
 
 	public function testRequirementLastSuccess() {
 		$this->runQuery();
-		$success = $this->callNonPublicMethod('requirementLast', array($this->_queryChild));
+		$success = $this->callNonPublicMethod('requirementLast', array($this->query()));
 		$this->assertTrue($success);
 	}
 	public function testRequirementLastFailure() {
 		$this->setExpectedException('\FQ\Exceptions\FileQueryRequirementsException');
-		$this->queryChild()->setRootDirs(array_merge($this->queryChild()->getRootDirs(), array($this->_newActualRootDirSecond())));
+		$this->files()->addRootDir($this->_newActualRootDirSecond());
 		$this->runQuery();
-		$this->callNonPublicMethod('requirementLast', array($this->queryChild()));
+		$this->callNonPublicMethod('requirementLast', array($this->query()));
 	}
 
 	public function testRequirementAllSuccess() {
 		$this->runQuery();
-		$success = $this->callNonPublicMethod('requirementAll', array($this->_queryChild));
+		$success = $this->callNonPublicMethod('requirementAll', array($this->query()));
 		$this->assertTrue($success);
 	}
 	public function testRequirementAllFailure() {
 		$this->setExpectedException('\FQ\Exceptions\FileQueryRequirementsException');
-		$this->queryChild()->setRootDirs(array_merge($this->queryChild()->getRootDirs(), array($this->_newActualRootDirSecond())));
+		$this->files()->addRootDir($this->_newActualRootDirSecond());
 		$this->runQuery();
-		$this->callNonPublicMethod('requirementAll', array($this->queryChild()));
+		$this->callNonPublicMethod('requirementAll', array($this->query()));
 	}
 
 	public function testTryRequirement() {
 		$requirements = $this->_getRequirementsInstance();
 		$this->runQuery();
-		$result = $requirements->tryRequirement(FilesQueryRequirements::LEVELS_ONE, $this->queryChild());
+		$result = $requirements->tryRequirement(FilesQueryRequirements::REQUIRE_ONE, $this->query());
 		$this->assertTrue($result);
 	}
 	public function testTryRequirementWithUnknownId() {
 		$this->setExpectedException('\FQ\Exceptions\FileQueryRequirementsException', 'Trying to call a requirement, but it isn\'t registered. Provided requirement "unknownId"');
 		$requirements = $this->_getRequirementsInstance();
 		$this->runQuery();
-		$requirements->tryRequirement('unknownId', $this->queryChild());
+		$requirements->tryRequirement('unknownId', $this->query());
 	}
 	public function testTryRequirementFailure() {
 		$this->setExpectedException('\FQ\Exceptions\FileQueryRequirementsException');
-		$this->queryChild()->setRootDirs(array_merge($this->queryChild()->getRootDirs(), array($this->_newActualRootDirSecond())));
+		$this->files()->addRootDir($this->_newActualRootDirSecond());
 		$this->runQuery();
 		$requirements = $this->_getRequirementsInstance();
-		throw $requirements->tryRequirement(FilesQueryRequirements::LEVELS_ALL, $this->queryChild());
+		throw $requirements->tryRequirement(FilesQueryRequirements::REQUIRE_ALL, $this->query());
 	}
 
 	public function testMeetsRequirementsWithoutAnyActiveRequirements() {
 		$requirements = $this->_getRequirementsInstance();
-		$this->assertTrue($requirements->meetsRequirements($this->queryChild()));
+		$this->assertTrue($requirements->meetsRequirements($this->query()));
 	}
 	public function testMeetsRequirementsWithOneRequirement() {
 		$requirements = $this->_getRequirementsInstance();
-		$requirements->addRequirement(FilesQueryRequirements::LEVELS_ONE);
+		$requirements->addRequirement(FilesQueryRequirements::REQUIRE_ONE);
 		$this->runQuery();
-		$this->assertTrue($requirements->meetsRequirements($this->queryChild()));
+		$this->assertTrue($requirements->meetsRequirements($this->query()));
 	}
 	public function testMeetsRequirementsWithOneRequirementThatWillFail() {
 		$this->setExpectedException('\FQ\Exceptions\FileQueryRequirementsException');
 		$requirements = $this->_getRequirementsInstance();
-		$requirements->addRequirement(FilesQueryRequirements::LEVELS_ALL);
-		$this->queryChild()->setRootDirs(array_merge($this->queryChild()->getRootDirs(), array($this->_newActualRootDirSecond())));
+		$requirements->addRequirement(FilesQueryRequirements::REQUIRE_ALL);
+		$this->files()->addRootDir($this->_newActualRootDirSecond());
 		$this->runQuery();
-		$this->assertTrue($requirements->meetsRequirements($this->queryChild()));
+		$this->assertTrue($requirements->meetsRequirements($this->query()));
 	}
 	public function testMeetsRequirementsWithOneRequirementThatWillFailButIsNotThrowingAnError() {
 		$this->setExpectedException('\FQ\Exceptions\FileQueryRequirementsException');
 		$requirements = $this->_getRequirementsInstance();
-		$requirements->addRequirement(FilesQueryRequirements::LEVELS_ALL);
-		$this->queryChild()->setRootDirs(array_merge($this->queryChild()->getRootDirs(), array($this->_newActualRootDirSecond())));
+		$requirements->addRequirement(FilesQueryRequirements::REQUIRE_ALL);
+		$this->files()->addRootDir($this->_newActualRootDirSecond());
 		$this->runQuery();
-		throw $requirements->meetsRequirements($this->queryChild(), false);
+		throw $requirements->meetsRequirements($this->query(), false);
 	}
 
 	/**

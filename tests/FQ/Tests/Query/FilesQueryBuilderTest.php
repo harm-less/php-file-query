@@ -100,9 +100,9 @@ class FilesQueryBuilderTest extends AbstractFilesQueryTests {
 
 	public function testAddRequirement() {
 		$builder = $this->builder();
-		$builder->addRequirement(FilesQueryRequirements::LEVELS_ONE);
+		$builder->addRequirement(FilesQueryRequirements::REQUIRE_ONE);
 		$this->assertEquals(array(
-			FilesQueryRequirements::LEVELS_ONE
+			FilesQueryRequirements::REQUIRE_ONE
 		), $this->callNonPublicMethod('_getRequirements'));
 	}
 
@@ -120,7 +120,7 @@ class FilesQueryBuilderTest extends AbstractFilesQueryTests {
 	public function testShowErrors() {
 		$this->setExpectedException('FQ\Exceptions\FileQueryRequirementsException');
 		$builder = $this->builder();
-		$builder->showErrors(true)->addRequirement(FilesQueryRequirements::LEVELS_ONE)->run('does-not-exist');
+		$builder->showErrors(true)->addRequirement(FilesQueryRequirements::REQUIRE_ONE)->run('does-not-exist');
 	}
 
 	public function testFilter() {

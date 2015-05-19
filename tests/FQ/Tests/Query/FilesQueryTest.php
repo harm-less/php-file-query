@@ -168,7 +168,7 @@ class FilesQueryTest extends AbstractFilesQueryTests {
 	}
 	public function testRunQueryWhenRequirementsAreNotMet() {
 		$query = $this->query();
-		$query->requirements()->addRequirement(FilesQueryRequirements::LEVELS_ALL);
+		$query->requirements()->addRequirement(FilesQueryRequirements::REQUIRE_ALL);
 		$rootDir = $this->_newFictitiousRootDir(false);
 		$this->files()->addRootDir($rootDir);
 		$this->runQuery();
@@ -177,7 +177,6 @@ class FilesQueryTest extends AbstractFilesQueryTests {
 
 		$error = $query->queryError();
 		$this->assertNotNull($query->queryError());
-		$this->assertEquals('All "child1" children must contain a file called "/child1/File2.php".', $error->getMessage());
 	}
 
 	public function testListPathsWhenQueryHasNotRan() {

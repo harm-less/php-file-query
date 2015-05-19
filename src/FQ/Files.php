@@ -234,7 +234,7 @@ class Files {
 	public function queryPath($fileName, ChildSelection $childSelection = null, RootSelection $rootSelection = null, $reverseLoad = false) {
 		$query = $this->query($rootSelection, $childSelection, true, true);
 		$query->reverse($reverseLoad);
-		$query->requirements(FilesQueryRequirements::LEVELS_ONE);
+		$query->requirements(FilesQueryRequirements::REQUIRE_ONE);
 		if ($query->run($fileName)) {
 			$paths = $query->listPaths();
 			if (count($paths)) foreach ($paths as $path) return $path;
@@ -265,7 +265,7 @@ class Files {
 	 * @param bool $reverseLoad
 	 * @return bool
 	 */
-	public function loadFiles($fileName, RootSelection $rootDirs = null, ChildSelection $children = null, $requiredLevels = FilesQueryRequirements::LEVELS_ONE, $reverseLoad = false)
+	public function loadFiles($fileName, RootSelection $rootDirs = null, ChildSelection $children = null, $requiredLevels = FilesQueryRequirements::REQUIRE_ONE, $reverseLoad = false)
 	{
 		$query = $this->query($rootDirs, $children, true, true);
 		$query->reverse($reverseLoad);

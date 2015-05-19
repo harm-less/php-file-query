@@ -24,7 +24,6 @@ class FilesQueryBuilder  {
 	function __construct(Files $files) {
 		$this->_childDirs = array();
 		$this->_requirements = array();
-		$this->_reset = true;
 
 		$this->_files = $files;
 	}
@@ -39,6 +38,9 @@ class FilesQueryBuilder  {
 	}
 	protected function getFileName() {
 		return $this->_fileName;
+	}
+	protected function _reset() {
+		return $this->_reset === null ? true : $this->_reset;
 	}
 	protected function _getRequirements() {
 		return $this->_requirements;
@@ -162,7 +164,7 @@ class FilesQueryBuilder  {
 	}
 
 	public function run($fileName = null) {
-		$query = $this->_files()->query($this->rootSelection(), $this->childSelection(), $this->_reset);
+		$query = $this->_files()->query($this->rootSelection(), $this->childSelection(), $this->_reset(), $this->_reset());
 		$requirements = $query->requirements();
 		$requirements->addRequirements($this->_getRequirements());
 		$query->reverse($this->_isReversed());
@@ -173,10 +175,10 @@ class FilesQueryBuilder  {
 		}
 
 		$fileNameToUse = $fileName !== null ? $fileName : $this->getFileName();
-
 		if (!is_string($fileNameToUse)) {
 			throw new FileQueryBuilderException('No filename has been set. Use filename() to use a filename for the query or supply it this this run() method');
 		}
+
 		$result = $query->run($fileNameToUse);
 		if ($result !== true && $this->_showErrors()) {
 			throw $query->queryError();

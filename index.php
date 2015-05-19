@@ -10,7 +10,9 @@ $sampleSimple = new \FQ\Samples\Simple();
 pr($sampleSimple->queryFile1FromChild1());
 pr($sampleSimple->queryFile1FromRoot1AndFromChild1());
 pr($sampleSimple->queryFile1InReverse());
-pr($sampleSimple->queryNonExistingFileWithRequirement());
+pr($sampleSimple->queryNonExistingFileWithRequirementOne());
+pr($sampleSimple->queryNonExistingFileWithRequirementLast());
+pr($sampleSimple->queryNonExistingFileWithRequirementAll());
 
 
 function pr($var) {

@@ -42,6 +42,24 @@ class FilesQuery {
 	private $_cachedQueryRootDirs;
 
 	/**
+	 * @var array
+	 */
+	private $_cachedPaths;
+	/**
+	 * @var string[]
+	 */
+	private $_cachedPathsSimple;
+
+	/**
+	 * @var array
+	 */
+	private $_cachedRawPaths;
+	/**
+	 * @var string[]
+	 */
+	private $_cachedRawPathsSimple;
+
+	/**
 	 * @var bool Indicator if the query has run or not
 	 */
 	private $_hasRun;
@@ -89,6 +107,9 @@ class FilesQuery {
 	public function reset() {
 		$this->_cachedQueryRootDirs = null;
 		$this->_currentQueryChildren = array();
+
+		$this->_cachedPaths = null;
+		$this->_cachedRawPaths = null;
 
 		$this->requirements()->removeAll();
 		$this->filters(self::FILTER_EXISTING, false);
@@ -173,7 +194,13 @@ class FilesQuery {
 		return $this->_queriedFileName;
 	}
 
-	public function queryChildDirs() {
+	/**
+	 * @return FilesQueryChild[]
+	 */
+	public function queryChildDirs($reversed = false) {
+		if ($reversed === true) {
+			return array_reverse($this->_currentQueryChildren);
+		}
 		return $this->_currentQueryChildren;
 	}
 
@@ -211,14 +238,13 @@ class FilesQuery {
 
 		$this->_currentQueryChildren = array();
 		foreach ($this->getCurrentChildDirSelection() as $childDir) {
-			$queryChild = $this->_processQueryChild($childDir, $rootDirsSelection);
-			$meetsRequirements = $this->requirements()->meetsRequirements($queryChild, false);
-			if ($meetsRequirements !== true) {
-				$this->_queryError = $meetsRequirements;
-			}
-			$this->_currentQueryChildren[$childDir->id()] = $queryChild;
+			$this->_currentQueryChildren[$childDir->id()] = $this->_processQueryChild($childDir, $rootDirsSelection);;
 		}
 		$this->_hasRun = true;
+		$meetsRequirements = $this->requirements()->meetsRequirements($this, false);
+		if ($meetsRequirements !== true) {
+			$this->_queryError = $meetsRequirements;
+		}
 		return $this->_queryError === null;
 	}
 
@@ -273,17 +299,80 @@ class FilesQuery {
 	public function listPaths() {
 		$this->_hasRunCheck();
 
-		$paths = array();
-		foreach($this->queryChildDirs() as $childQuery) {
-			// in case one of the child queries failed and returned false, do not try to add this to the list
-			if ($childQuery !== false) {
-				$paths = array_merge_recursive($paths, $childQuery->filteredAbsolutePaths());
+		if ($this->_cachedPaths === null) {
+
+			$paths = array();
+			foreach ($this->queryChildDirs() as $childQuery) {
+				// in case one of the child queries failed and returned false, do not try to add this to the list
+				if ($childQuery !== false) {
+					$paths = array_merge_recursive($paths, $childQuery->filteredAbsolutePaths());
+				}
 			}
+			if ($this->isReversed()) {
+				$paths = $this->reversePaths($paths);
+			}
+			$this->_cachedPaths = $paths;
 		}
-		if ($this->isReversed()) {
-			$paths = $this->reversePaths($paths);
+		return $this->_cachedPaths;
+	}
+	/**
+	 * Returns a list of all the paths it found
+	 *
+	 * @return null|string[]
+	 */
+	public function listPathsSimple() {
+		$this->_hasRunCheck();
+
+		if ($this->_cachedPathsSimple === null) {
+			$temp = array();
+			foreach ($this->listPaths() as $rootDirPaths) {
+				$temp = array_merge($temp, (array) $rootDirPaths);
+			}
+			$this->_cachedPathsSimple = $temp;
 		}
-		return $paths;
+		return $this->_cachedPathsSimple;
+	}
+
+	/**
+	 * Returns a list of all the paths it found
+	 *
+	 * @return null|string[]
+	 */
+	public function listRawPaths() {
+		$this->_hasRunCheck();
+
+		if ($this->_cachedRawPaths === null) {
+
+			$paths = array();
+			foreach ($this->queryChildDirs() as $childQuery) {
+				// in case one of the child queries failed and returned false, do not try to add this to the list
+				if ($childQuery !== false) {
+					$paths = array_merge_recursive($paths, $childQuery->rawAbsolutePaths());
+				}
+			}
+			if ($this->isReversed()) {
+				$paths = $this->reversePaths($paths);
+			}
+			$this->_cachedRawPaths = $paths;
+		}
+		return $this->_cachedRawPaths;
+	}
+	/**
+	 * Returns a list of all the paths it found
+	 *
+	 * @return null|string[]
+	 */
+	public function listRawPathsSimple() {
+		$this->_hasRunCheck();
+
+		if ($this->_cachedRawPathsSimple === null) {
+			$temp = array();
+			foreach ($this->listRawPaths() as $rootDirPaths) {
+				$temp = array_merge($temp, (array) $rootDirPaths);
+			}
+			$this->_cachedRawPathsSimple = $temp;
+		}
+		return $this->_cachedRawPathsSimple;
 	}
 
 	/**

@@ -19,16 +19,16 @@ class FilesQueryRequirements {
 	/**
 	 * Constants determining requirement checking for the query
 	 */
-	const LEVELS_ONE = 'levels_one';
-	const LEVELS_LAST = 'levels_last';
-	const LEVELS_ALL = 'levels_all';
+	const REQUIRE_ONE = 'require_one';
+	const REQUIRE_LAST = 'require_last';
+	const REQUIRE_ALL = 'require_all';
 
 	function __construct() {
 		$this->_requirements = array();
 
-		$this->registerRequirement(self::LEVELS_ONE, array($this, 'requirementAtLeastOne'));
-		$this->registerRequirement(self::LEVELS_LAST, array($this, 'requirementLast'));
-		$this->registerRequirement(self::LEVELS_ALL, array($this, 'requirementAll'));
+		$this->registerRequirement(self::REQUIRE_ONE, array($this, 'requirementAtLeastOne'));
+		$this->registerRequirement(self::REQUIRE_LAST, array($this, 'requirementLast'));
+		$this->registerRequirement(self::REQUIRE_ALL, array($this, 'requirementAll'));
 	}
 
 	/**
@@ -170,51 +170,75 @@ class FilesQueryRequirements {
 
 	/**
 	 * @param string $id
-	 * @param FilesQueryChild $child
+	 * @param FilesQuery $query
 	 * @throws FileQueryRequirementsException
 	 * @return mixed
 	 */
-	public function tryRequirement($id, FilesQueryChild $child) {
+	public function tryRequirement($id, FilesQuery $query) {
 		if (!$this->requirementIsRegistered($id)) {
 			throw new FileQueryRequirementsException(sprintf('Trying to call a requirement, but it isn\'t registered. Provided requirement "%s"', $id), 10);
 		}
-		return call_user_func($this->_registeredRequirements[$id], $child);
+		return call_user_func($this->_registeredRequirements[$id], $query);
 	}
 
 	/**
-	 * @param FilesQueryChild $child
+	 * @param FilesQuery $query
 	 * @return bool|FileQueryRequirementsException
 	 */
-	protected function requirementAtLeastOne(FilesQueryChild $child) {
-		if (!$child->totalExistingPaths() >= 1) {
-			return new FileQueryRequirementsException(sprintf('At least 1 file must be available for file "%s" in child with an id of "%s". Please create the file in any of these locations: "%s"', $child->relativePath(), $child->childDir()->id(), implode('", "', $child->rawAbsolutePaths())));
+	protected function requirementAtLeastOne(FilesQuery $query) {
+		if (!$query->hasPaths() >= 1) {
+			return new FileQueryRequirementsException(sprintf('At least 1 file must be available for file "%s". Please create the file in any of these locations: "%s"', $query->queriedFileName(), implode('", "', $query->listRawPathsSimple())));
 		}
 		return true;
 	}
 
 	/**
-	 * @param FilesQueryChild $child
+	 * @param FilesQuery $query
 	 * @return bool|FileQueryRequirementsException
 	 */
-	protected function requirementLast(FilesQueryChild $child) {
-		$pathsExist = array_reverse($child->pathsExist());
-		foreach ($pathsExist as $rootDir) {
-			if ($rootDir === false) {
-				return new FileQueryRequirementsException(sprintf('Last file "%s" not found in child "%s" but it is required', $child->relativePath(), $child->childDir()->id()));
+	protected function requirementLast(FilesQuery $query) {
+		$oneExists = false;
+
+		$lastRootDirId = null;
+		$rootSelection = $query->getCurrentRootDirSelection();
+		if (count($rootSelection) >= 1) {
+			$lastRootDirId = $rootSelection[0]->id();
+
+			foreach ($query->queryChildDirs(true) as $child) {
+				$pathExist = $child->pathsExist();
+				if ($pathExist[$lastRootDirId] !== false) {
+					$oneExists = true;
+					break;
+				}
 			}
-			// just check the first root dir (which is the last one because it was reversed)
-			break;
+		}
+
+		if (!$oneExists) {
+			if ($lastRootDirId === null) {
+				return new FileQueryRequirementsException('Query requires at least one file to exist in at least one child directory, but there isn\'t even a root directory. Make sure you have at least one root directory in your query');
+			}
+
+			$paths = array();
+			foreach ($query->queryChildDirs(true) as $child) {
+				$rawPaths = $child->rawAbsolutePaths();
+				$paths = array_merge($paths, (array) $rawPaths[$lastRootDirId]);
+			}
+			return new FileQueryRequirementsException(sprintf('Query requires at least one file to exist in at least one child directory in the last root directory with ID "%s". File must be present in one of the following locations: "%s"', $lastRootDirId, implode('", "', $paths)));
 		}
 		return true;
 	}
 
 	/**
-	 * @param FilesQueryChild $child
+	 * @param FilesQuery $query
 	 * @return bool|FileQueryRequirementsException
 	 */
-	protected function requirementAll(FilesQueryChild $child) {
-		if ($child->totalExistingPaths() != count($child->getRootDirs())) {
-			return new FileQueryRequirementsException(sprintf('All "%s" children must contain a file called "%s".', $child->childDir()->id(), $child->relativePath()));
+	protected function requirementAll(FilesQuery $query) {
+		if (count($query->listPathsSimple()) != count($query->listRawPathsSimple())) {
+			$totalNeeded = count($query->listRawPathsSimple());
+			$totalAvailable = count($query->listPathsSimple());
+
+			$neededPaths = array_diff($query->listRawPathsSimple(), $query->listPathsSimple());
+			return new FileQueryRequirementsException(sprintf('All root directories and children must contain a file called "%s". Total files needed is %s but only %s files exist. Make sure that file is also available in the following locations: "%s"', $query->queriedFileName(), $totalNeeded, $totalAvailable, implode('", "', $neededPaths)));
 		}
 		return true;
 	}
@@ -222,21 +246,21 @@ class FilesQueryRequirements {
 	/**
 	 * Checks if the query meets all its requirements
 	 *
-	 * @param FilesQueryChild $queryChild
+	 * @param FilesQuery $query
 	 * @param bool $throwExceptionOnFail
 	 * @throws \Exception When $throwExceptionOnFail is set to true and one of the requirements fails, it will throw
 	 * the exception from that fail. Otherwise this exception will be returned
 	 * @return mixed Returns true if all requirements are met. Otherwise returns an un-thrown exception
 	 * if 'throwExceptionOnFail' is set to false or the response from the requirement
 	 */
-	public function meetsRequirements(FilesQueryChild $queryChild, $throwExceptionOnFail = true) {
+	public function meetsRequirements(FilesQuery $query, $throwExceptionOnFail = true) {
 		// if there are no requirements it certainly is valid and it can be returned immediately
 		if (!$this->hasRequirements()) {
 			return true;
 		}
 
 		foreach ($this->requirements() as $requirement) {
-			$attempt = $this->tryRequirement($requirement, $queryChild);
+			$attempt = $this->tryRequirement($requirement, $query);
 			if ($attempt instanceof \Exception && $throwExceptionOnFail === true) {
 				throw $attempt;
 			}
