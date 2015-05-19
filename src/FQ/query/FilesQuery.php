@@ -166,7 +166,7 @@ class FilesQuery {
 	 * @return bool If a ChildDir exists in the Files instance it will return true, otherwise it will return false
 	 */
 	public function isValidChildDir(ChildDir $childDir) {
-		return $this->files()->isChildDirOf($childDir);
+		return $this->files()->containsChildDir($childDir);
 	}
 
 	public function queriedFileName() {
@@ -219,7 +219,7 @@ class FilesQuery {
 			$this->_currentQueryChildren[$childDir->id()] = $queryChild;
 		}
 		$this->_hasRun = true;
-		return $this->listPaths();
+		return $this->_queryError === null;
 	}
 
 	/**

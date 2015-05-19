@@ -20,6 +20,9 @@ class Simple extends SampleBootstrapper {
 
 	public function queryFile1FromChild1() {
 
+		//pr($this->queryPath('File2'));
+		//var_dump($this->queryPath('does-not'));
+
 
 		$builder = new FilesQueryBuilder($this);
 		$builder->excludeRootDirs('root1')->includeChildDirs('child1')->fileName('File1');

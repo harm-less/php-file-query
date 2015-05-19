@@ -69,6 +69,8 @@ class FilesQueryChild {
 
 	/**
 	 * Resets the FilesQueryChild so it can be reused
+	 *
+	 * @todo Add a soft reset so the raw paths don't have to be reset each time a query request has been done
 	 */
 	public function reset() {
 		$this->_rawRelativePath = null;
@@ -80,6 +82,7 @@ class FilesQueryChild {
 		$this->_pathsExist = null;
 
 		$this->_filteredPathsCashed = null;
+		$this->_filteredAbsolutePaths = null;
 		$this->_filteredBasePaths = null;
 	}
 

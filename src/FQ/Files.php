@@ -8,6 +8,7 @@ use FQ\Dirs\ChildDir;
 use FQ\Dirs\RootDir;
 use FQ\Exceptions\FilesException;
 use FQ\Query\FilesQuery;
+use FQ\Query\FilesQueryRequirements;
 use FQ\Query\Selection\ChildSelection;
 use FQ\Query\Selection\RootSelection;
 
@@ -30,7 +31,6 @@ class Files {
 	 *
 	 */
 	private $_query;
-
 
 	const DEFAULT_EXTENSION = 'php';
 
@@ -68,7 +68,7 @@ class Files {
 	 * @param RootDir $rootDir RootDir that will be checked
 	 * @return bool Returns true if RootDir is part of this files instance
 	 */
-	public function isRootDirOf(RootDir $rootDir) {
+	public function containsRootDir(RootDir $rootDir) {
 		return $this->_rootDirs()->isInCollection($rootDir);
 	}
 
@@ -140,7 +140,7 @@ class Files {
 	 * @param ChildDir $childDir Dir that will be checked
 	 * @return bool Returns true if dir is part of this files instance
 	 */
-	public function isChildDirOf(ChildDir $childDir) {
+	public function containsChildDir(ChildDir $childDir) {
 		return $this->_childDirs()->isInCollection($childDir);
 	}
 
@@ -207,9 +207,6 @@ class Files {
 		return true;
 	}
 
-
-
-
 	/**
 	 * @param string|RootDir $rootDir
 	 * @param string|ChildDir $childDir
@@ -229,31 +226,31 @@ class Files {
 
 	/**
 	 * @param string $fileName
-	 * @param null|string|ChildDir[] $children
+	 * @param ChildSelection $childSelection
+	 * @param RootSelection $rootSelection
 	 * @param bool $reverseLoad
-	 * @return null|string
+	 * @return false|string
 	 */
-	public function filePath($fileName, $children = null, $reverseLoad = true) {
-		$query = $this->query($children);
+	public function queryPath($fileName, ChildSelection $childSelection = null, RootSelection $rootSelection = null, $reverseLoad = true) {
+		$query = $this->query($rootSelection, $childSelection, true, true);
 		$query->reverse($reverseLoad);
-		$query->requirements(FilesQuery::LEVELS_ONE);
-		$query->run($fileName);
-
-		$paths = $query->listPaths();
-		if (count($paths)) {
-			foreach ($paths as $path) return $path;
+		$query->requirements(FilesQueryRequirements::LEVELS_ONE);
+		if ($query->run($fileName)) {
+			$paths = $query->listPaths();
+			if (count($paths)) foreach ($paths as $path) return $path;
 		}
 		return false;
 	}
 
 	/**
 	 * @param string $fileName
-	 * @param null|string|ChildDir[] $children
+	 * @param ChildSelection $childSelection
+	 * @param RootSelection $rootSelection
 	 * @param bool $reverseLoad
 	 * @return bool
 	 */
-	public function loadFile($fileName, $children = null, $reverseLoad = true) {
-		$path = $this->filePath($fileName, $children, $reverseLoad);
+	public function loadFile($fileName, ChildSelection $childSelection = null, RootSelection $rootSelection = null, $reverseLoad = true) {
+		$path = $this->queryPath($fileName, $childSelection, $rootSelection, $reverseLoad);
 		if ($path) {
 			return $this->requireOnce($path);
 		}
@@ -268,26 +265,32 @@ class Files {
 	 * @param bool $reverseLoad
 	 * @return bool
 	 */
-	public function loadFiles($fileName, RootSelection $rootDirs = null, ChildSelection $children = null, $requiredLevels = FilesQuery::LEVELS_ONE, $reverseLoad = true) {
-        $query = $this->query($rootDirs, $children, true, true);
-        $query->reverse($reverseLoad);
-        $query->requirements($requiredLevels);
-        $query->run($fileName);
-
-		foreach ($query->listPaths() as $file) {
-			$this->requireOnce($file);
+	public function loadFiles($fileName, RootSelection $rootDirs = null, ChildSelection $children = null, $requiredLevels = FilesQueryRequirements::LEVELS_ONE, $reverseLoad = true)
+	{
+		$query = $this->query($rootDirs, $children, true, true);
+		$query->reverse($reverseLoad);
+		$query->requirements($requiredLevels);
+		if ($query->run($fileName)) {
+			$paths = $query->listPaths();
+			if (count($paths)) {
+				foreach ($query->listPaths() as $file) {
+					$this->includeOnce($file);
+				}
+				return true;
+			}
 		}
-        return true;
+		return false;
 	}
 
 	/**
 	 * @param string $fileName
 	 * @param RootSelection $rootDirs
 	 * @param ChildSelection $children
-	 * @return FilesQuery
+	 * @return array
 	 */
-	public function getFilePaths($fileName, RootSelection $rootDirs = null, ChildSelection $children = null) {
-		$query = $this->queryRun($fileName, $rootDirs, $children, true, true);
+	public function queryPaths($fileName, RootSelection $rootDirs = null, ChildSelection $children = null) {
+		$query = $this->query($rootDirs, $children, true, true);
+		$query->run($fileName);
 		return $query->listPaths();
 	}
 
@@ -298,7 +301,8 @@ class Files {
 	 * @return bool
 	 */
 	public function fileExists($fileName, RootSelection $rootDirs = null, ChildSelection $children = null) {
-		$query = $this->queryRun($fileName, $rootDirs, $children, true, true);
+		$query = $this->query($rootDirs, $children, true, true);
+		$query->run($fileName);
 		return $query->hasPaths();
 	}
 
@@ -323,19 +327,15 @@ class Files {
 	}
 
 	/**
-	 * A basic query wrapper
+	 * Very simple include function wrapper. Ready to be extended when necessary.
 	 *
-	 * @param string $fileName
-	 * @param RootSelection $rootDirs
-	 * @param ChildSelection $children
-	 * @param bool $resetQuery
-	 * @param bool $resetSelection
-	 * @return FilesQuery
+	 * @param string $file
+	 * @return bool
 	 */
-	public function queryRun($fileName, RootSelection $rootDirs = null, ChildSelection $children = null, $resetQuery = true, $resetSelection = false) {
-		$query = $this->query($rootDirs, $children, $resetQuery, $resetSelection);
-		$query->run($fileName);
-		return $query;
+	protected function includeOnce($file) {
+		/** @noinspection PhpIncludeInspection */
+		include_once $file;
+		return true;
 	}
 
 	/**
