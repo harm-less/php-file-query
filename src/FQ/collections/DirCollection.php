@@ -74,6 +74,49 @@ class DirCollection {
 	}
 
 	/**
+	 * @param Dir $dir
+	 * @return bool
+	 */
+	public function removeDir(Dir $dir) {
+		if (($index = array_search($dir, $this->_dirs)) !== false) {
+			array_splice($this->_dirs, $index, 1);
+			return $dir;
+		}
+		return false;
+	}
+	/**
+	 * @param string $id
+	 * @return bool
+	 */
+	public function removeDirById($id) {
+		foreach ($this->_dirs as $index => $dir) {
+			if ($dir->id() === $id) {
+				array_splice($this->_dirs, $index, 1);
+				return true;
+			}
+		}
+		return false;
+	}
+	/**
+	 * @param int $index
+	 * @return bool
+	 */
+	public function removeDirAtIndex($index) {
+		if (count($this->_dirs) > $index) {
+			array_splice($this->_dirs, $index, 1);
+			return true;
+		}
+		return false;
+	}
+
+	/**
+	 *
+	 */
+	public function removeAllDirs() {
+		$this->_dirs = array();
+	}
+
+	/**
 	 * @return string[]
 	 */
 	public function getPaths() {

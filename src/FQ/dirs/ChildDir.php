@@ -28,4 +28,20 @@ class ChildDir extends Dir {
 		}
 		return $this->defaultFileExtension;
 	}
+
+	/**
+	 * @param RootDir $rootDir
+	 * @return string
+	 */
+	public function fullAbsolutePath(RootDir $rootDir) {
+		return $rootDir->dir() . '/' . $this->dir();
+	}
+
+	/**
+	 * @param RootDir $rootDir
+	 * @return string
+	 */
+	public function fullBasePath(RootDir $rootDir) {
+		return $rootDir->basePath() . '/' . $this->dir();
+	}
 } 

@@ -69,6 +69,28 @@ class FilesTest extends AbstractFQTest {
 		$this->assertEquals(array(AbstractFQTest::ROOT_DIR_DEFAULT_ABSOLUTE_PATH), $this->files()->getRootPaths());
 	}
 
+	public function testRemoveRootDir() {
+		$rootDir = $this->_addRootDir();
+		$this->assertEquals($rootDir, $this->files()->removeRootDir($rootDir));
+		$this->assertFalse($this->files()->removeRootDir($rootDir));
+	}
+	public function testRemoveRootDirById() {
+		$this->_addRootDir();
+		$this->assertTrue($this->files()->removeRootDirById(self::ROOT_DIR_DEFAULT_ID));
+		$this->assertFalse($this->files()->removeRootDirById(self::ROOT_DIR_DEFAULT_ID));
+	}
+	public function testRemoveRootDirAtIndex() {
+		$this->_addRootDir();
+		$this->assertTrue($this->files()->removeRootDirAtIndex(0));
+		$this->assertFalse($this->files()->removeRootDirAtIndex(0));
+	}
+	public function testRemoveAllRootDirs() {
+		$this->_addRootDir();
+		$this->_addRootDir();
+		$this->files()->removeAllRootDirs();
+		$this->assertEquals(array(), $this->files()->rootDirs());
+	}
+
 	public function testContainerRootDir() {
 		$rootDir = $this->_addRootDir();
 		$this->assertTrue($this->files()->containsRootDir($rootDir));
@@ -122,6 +144,28 @@ class FilesTest extends AbstractFQTest {
 		$this->assertEquals(2, $this->files()->totalChildDirs());
 		$this->assertEquals($firstChildDir, $this->files()->getChildDirByIndex(1));
 		$this->assertEquals($secondChildDir, $this->files()->getChildDirByIndex(0));
+	}
+
+	public function testRemoveChildDir() {
+		$childDir = $this->_addChildDir();
+		$this->assertEquals($childDir, $this->files()->removeChildDir($childDir));
+		$this->assertFalse($this->files()->removeChildDir($childDir));
+	}
+	public function testRemoveChildDirById() {
+		$this->_addChildDir();
+		$this->assertTrue($this->files()->removeChildDirById(self::CHILD_DIR_DEFAULT_ID));
+		$this->assertFalse($this->files()->removeChildDirById(self::CHILD_DIR_DEFAULT_ID));
+	}
+	public function testRemoveChildDirAtIndex() {
+		$this->_addChildDir();
+		$this->assertTrue($this->files()->removeChildDirAtIndex(0));
+		$this->assertFalse($this->files()->removeChildDirAtIndex(0));
+	}
+	public function testRemoveAllChildDirs() {
+		$this->_addChildDir();
+		$this->_addChildDir();
+		$this->files()->removeAllChildDirs();
+		$this->assertEquals(array(), $this->files()->childDirs());
 	}
 
 	public function testAddingOneChildDirAndRetrieveAllPaths() {

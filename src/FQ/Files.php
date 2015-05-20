@@ -18,13 +18,13 @@ class Files {
 	 * @var RootDirCollection Container with all root directories
 	 *
 	 */
-	private $_rootDirs;
+	private $_rootDirCollection;
 
 	/**
 	 * @var ChildDirCollection Container with all child directories
 	 *
 	 */
-	private $_childDirs;
+	private $_childDirCollection;
 
 	/**
 	 * @var FilesQuery Query object for each Files instance
@@ -35,16 +35,16 @@ class Files {
 	const DEFAULT_EXTENSION = 'php';
 
 	function __construct() {
-		$this->_rootDirs = new RootDirCollection();
-		$this->_childDirs = new ChildDirCollection();
+		$this->_rootDirCollection = new RootDirCollection();
+		$this->_childDirCollection = new ChildDirCollection();
 		$this->_query = new FilesQuery($this);
 	}
 
 	/**
 	 * @return RootDirCollection
 	 */
-	protected function _rootDirs() {
-		return $this->_rootDirs;
+	protected function _rootCollection() {
+		return $this->_rootDirCollection;
 	}
 
 	/**
@@ -53,15 +53,40 @@ class Files {
 	 * @return RootDir|false
 	 */
 	public function addRootDir(RootDir $rootDir, $index = null) {
-		$rootDir = $this->_rootDirs()->addRootDir($rootDir, $index);
+		$rootDir = $this->_rootCollection()->addRootDir($rootDir, $index);
 		return $this->isValid() === true ? $rootDir : false;
+	}
+
+	/**
+	 * @param RootDir $rootDir
+	 * @return bool
+	 */
+	public function removeRootDir(RootDir $rootDir) {
+		return $this->_rootCollection()->removeDir($rootDir);
+	}
+	/**
+	 * @param string $id
+	 * @return bool
+	 */
+	public function removeRootDirById($id) {
+		return $this->_rootCollection()->removeDirById($id);
+	}
+	/**
+	 * @param int $index
+	 * @return bool
+	 */
+	public function removeRootDirAtIndex($index) {
+		return $this->_rootCollection()->removeDirAtIndex($index);
+	}
+	public function removeAllRootDirs() {
+		$this->_rootCollection()->removeAllDirs();
 	}
 
 	/**
 	 * @return RootDir[]
 	 */
 	public function rootDirs() {
-		return $this->_rootDirs()->dirs();
+		return $this->_rootCollection()->dirs();
 	}
 
 	/**
@@ -69,14 +94,14 @@ class Files {
 	 * @return bool Returns true if RootDir is part of this files instance
 	 */
 	public function containsRootDir(RootDir $rootDir) {
-		return $this->_rootDirs()->isInCollection($rootDir);
+		return $this->_rootCollection()->isInCollection($rootDir);
 	}
 
 	/**
 	 * @return int Total root directories
 	 */
 	public function totalRootDirs() {
-		return $this->_rootDirs()->totalDirs();
+		return $this->_rootCollection()->totalDirs();
 	}
 
 	/**
@@ -84,7 +109,7 @@ class Files {
 	 * @return RootDir|null
 	 */
 	public function getRootDir($rootDir) {
-		return $this->_rootDirs()->getDir($rootDir);
+		return $this->_rootCollection()->getDir($rootDir);
 	}
 
 	/**
@@ -92,7 +117,7 @@ class Files {
 	 * @return null|RootDir
 	 */
 	public function getRootDirById($id) {
-		return $this->_rootDirs()->getDirById($id);
+		return $this->_rootCollection()->getDirById($id);
 	}
 
 	/**
@@ -100,14 +125,14 @@ class Files {
 	 * @return RootDir|false
 	 */
 	public function getRootDirByIndex($index) {
-		return $this->_rootDirs()->getDirByIndex($index);
+		return $this->_rootCollection()->getDirByIndex($index);
 	}
 
 	/**
 	 * @return string[]
 	 */
 	public function getRootPaths() {
-		return $this->_rootDirs()->getPaths();
+		return $this->_rootCollection()->getPaths();
 	}
 
 
@@ -115,8 +140,8 @@ class Files {
 	/**
 	 * @return ChildDirCollection
 	 */
-	protected function _childDirs() {
-		return $this->_childDirs;
+	protected function _childCollection() {
+		return $this->_childDirCollection;
 	}
 
 	/**
@@ -125,15 +150,40 @@ class Files {
 	 * @return ChildDir|false
 	 */
 	public function addChildDir(ChildDir $childDir, $index = null) {
-		$childDir = $this->_childDirs()->addChildDir($childDir, $index);
+		$childDir = $this->_childCollection()->addChildDir($childDir, $index);
 		return $this->isValid() === true ? $childDir : false;
+	}
+
+	/**
+	 * @param ChildDir $childDir
+	 * @return bool
+	 */
+	public function removeChildDir(ChildDir $childDir) {
+		return $this->_childCollection()->removeDir($childDir);
+	}
+	/**
+	 * @param string $id
+	 * @return bool
+	 */
+	public function removeChildDirById($id) {
+		return $this->_childCollection()->removeDirById($id);
+	}
+	/**
+	 * @param int $index
+	 * @return bool
+	 */
+	public function removeChildDirAtIndex($index) {
+		return $this->_childCollection()->removeDirAtIndex($index);
+	}
+	public function removeAllChildDirs() {
+		$this->_childCollection()->removeAllDirs();
 	}
 
 	/**
 	 * @return ChildDir[]
 	 */
 	public function childDirs() {
-		return $this->_childDirs()->dirs();
+		return $this->_childCollection()->dirs();
 	}
 
 	/**
@@ -141,14 +191,14 @@ class Files {
 	 * @return bool Returns true if dir is part of this files instance
 	 */
 	public function containsChildDir(ChildDir $childDir) {
-		return $this->_childDirs()->isInCollection($childDir);
+		return $this->_childCollection()->isInCollection($childDir);
 	}
 
 	/**
 	 * @return int Total child directories
 	 */
 	public function totalChildDirs() {
-		return $this->_childDirs()->totalDirs();
+		return $this->_childCollection()->totalDirs();
 	}
 
 	/**
@@ -156,7 +206,7 @@ class Files {
 	 * @return null|ChildDir
 	 */
 	public function getChildDir($childDir) {
-		return $this->_childDirs()->getDir($childDir);
+		return $this->_childCollection()->getDir($childDir);
 	}
 
 	/**
@@ -164,7 +214,7 @@ class Files {
 	 * @return null|ChildDir
 	 */
 	public function getChildDirById($id) {
-		return $this->_childDirs()->getDirById($id);
+		return $this->_childCollection()->getDirById($id);
 	}
 
 	/**
@@ -172,14 +222,14 @@ class Files {
 	 * @return ChildDir|false
 	 */
 	public function getChildDirByIndex($index) {
-		return $this->_childDirs()->getDirByIndex($index);
+		return $this->_childCollection()->getDirByIndex($index);
 	}
 
 	/**
 	 * @return string[]
 	 */
 	public function getChildPaths() {
-		return $this->_childDirs()->getPaths();
+		return $this->_childCollection()->getPaths();
 	}
 
 	/**
@@ -192,7 +242,7 @@ class Files {
 			if ($rootDir->isRequired()) {
 				$rootDirPath = $rootDir->dir();
 				if (!is_dir($rootDirPath)) {
-					throw new FilesException(sprintf('Root directory "%s" does not exist but is required. Please create this directory or turn this requirement off.', $rootDirPath));
+					throw new FilesException(sprintf('Absolute root directory "%s" does not exist but is required. Please create this directory or turn this requirement off.', $rootDirPath));
 				}
 				foreach ($this->childDirs() as $childDir) {
 					if ($childDir->isRequired()) {
@@ -221,7 +271,7 @@ class Files {
 			$childDirId = $childObj !== null ? $childObj->id() : '-';
 			throw new FilesException(sprintf('Cannot build a full path because either the root directory, the child directory or both are not defined. Root directory id "%s". Child directory id "%s"', $rootDirId, $childDirId));
 		}
-		return $rootDirObj->dir() . '/' . $childObj->dir();
+		return $childObj->fullAbsolutePath($rootDirObj);
 	}
 
 	/**

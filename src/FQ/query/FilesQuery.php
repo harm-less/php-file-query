@@ -109,7 +109,9 @@ class FilesQuery {
 		$this->_currentQueryChildren = array();
 
 		$this->_cachedPaths = null;
+		$this->_cachedPathsSimple = null;
 		$this->_cachedRawPaths = null;
+		$this->_cachedRawPathsSimple = null;
 
 		$this->requirements()->removeAll();
 		$this->filters(self::FILTER_EXISTING, false);
@@ -161,6 +163,9 @@ class FilesQuery {
 		}
 		return $this->_filters;
 	}
+	public function queryHasFilter($filter) {
+		return in_array($filter, $this->filters());
+	}
 
 	public function setRootDirSelection(RootSelection $selection) {
 		$this->_rootDirSelection = $selection;
@@ -195,6 +200,7 @@ class FilesQuery {
 	}
 
 	/**
+	 * @param bool $reversed
 	 * @return FilesQueryChild[]
 	 */
 	public function queryChildDirs($reversed = false) {
@@ -233,6 +239,10 @@ class FilesQuery {
 	 * @return null|string[]
 	 */
 	public function run($fileName) {
+		if ($this->files()->totalRootDirs() === 0) {
+			throw new FileQueryException(sprintf('Query is trying to run with file "%s" but no root directories are configured. Make sure sure you have added at least one root directory with Files::addRootDir() before you run a query', $fileName));
+		}
+
 		$this->_queriedFileName = $fileName;
 		$rootDirsSelection = $this->_getCachedRootDirSelection();
 
@@ -246,6 +256,21 @@ class FilesQuery {
 			$this->_queryError = $meetsRequirements;
 		}
 		return $this->_queryError === null;
+	}
+
+	public function load() {
+		$this->_hasRunCheck();
+
+		if ($this->queryHasFilter(FilesQuery::FILTER_EXISTING)) {
+			foreach ($this->listPathsSimple() as $path) {
+				/** @noinspection PhpIncludeInspection */
+				require_once $path;
+			}
+			return true;
+		}
+		else {
+			throw new FileQueryException('Loading files requires the filter "existing"');
+		}
 	}
 
 	/**

@@ -42,55 +42,75 @@ class FilesQueryBuilderTest extends AbstractFilesQueryTests {
 	}
 	public function testIncludeRootDirsByArrayOfRootDirs() {
 		$builder = $this->builder();
-		$builder->includeRootDirs(array($this->rootDir()));
+		$this->assertEquals($builder, $builder->includeRootDirs(array($this->rootDir())));
 		$this->assertEquals(array(
 			$this->rootDir()
 		), $builder->rootSelection()->getIncludedDirsByDir());
 	}
+	public function testIncludeRootDirsNull() {
+		$builder = $this->builder();
+		$this->assertEquals($builder, $builder->includeRootDirs(null));
+		$this->assertFalse($builder->rootSelection()->hasIncludedDirs());
+	}
 
 	public function testExcludeRootDirsById() {
 		$builder = $this->builder();
-		$builder->excludeRootDirs($this->rootDir()->id());
+		$this->assertEquals($builder, $builder->excludeRootDirs($this->rootDir()->id()));
 		$this->assertEquals(array(
 			$this->rootDir()->id()
 		), $builder->rootSelection()->getExcludedDirsById());
 	}
 	public function testExcludeRootDirsByArrayOfRootDirs() {
 		$builder = $this->builder();
-		$builder->excludeRootDirs(array($this->rootDir()));
+		$this->assertEquals($builder, $builder->excludeRootDirs(array($this->rootDir())));
 		$this->assertEquals(array(
 			$this->rootDir()
 		), $builder->rootSelection()->getExcludedDirsByDir());
 	}
+	public function testExcludeRootDirsNull() {
+		$builder = $this->builder();
+		$this->assertEquals($builder, $builder->excludeRootDirs(null));
+		$this->assertFalse($builder->rootSelection()->hasExcludedDirs());
+	}
 
 	public function testIncludeChildDirsById() {
 		$builder = $this->builder();
-		$builder->includeChildDirs($this->childDir()->id());
+		$this->assertEquals($builder, $builder->includeChildDirs($this->childDir()->id()));
 		$this->assertEquals(array(
 			$this->childDir()->id()
 		), $builder->childSelection()->getIncludedDirsById());
 	}
 	public function testIncludeChildDirsByArrayOfRootDirs() {
 		$builder = $this->builder();
-		$builder->includeChildDirs(array($this->childDir()));
+		$this->assertEquals($builder, $builder->includeChildDirs(array($this->childDir())));
 		$this->assertEquals(array(
 			$this->childDir()
 		), $builder->childSelection()->getIncludedDirsByDir());
 	}
+	public function testIncludeChildDirsNull() {
+		$builder = $this->builder();
+		$this->assertEquals($builder, $builder->includeChildDirs(null));
+		$this->assertFalse($builder->childSelection()->hasIncludedDirs());
+	}
 
 	public function testExcludeChildDirsById() {
 		$builder = $this->builder();
-		$builder->excludeChildDirs($this->childDir()->id());
+		$this->assertEquals($builder, $builder->excludeChildDirs($this->childDir()->id()));
 		$this->assertEquals(array(
 			$this->childDir()->id()
 		), $builder->childSelection()->getExcludedDirsById());
 	}
 	public function testExcludeChildDirsByArrayOfRootDirs() {
 		$builder = $this->builder();
-		$builder->excludeChildDirs(array($this->childDir()));
+		$this->assertEquals($builder, $builder->excludeChildDirs(array($this->childDir())));
 		$this->assertEquals(array(
 			$this->childDir()
 		), $builder->childSelection()->getExcludedDirsByDir());
+	}
+	public function testExcludeChildDirsNull() {
+		$builder = $this->builder();
+		$this->assertEquals($builder, $builder->excludeChildDirs(null));
+		$this->assertFalse($builder->childSelection()->hasExcludedDirs());
 	}
 
 	public function testAddDirSelectionByUnknownType() {
@@ -100,7 +120,7 @@ class FilesQueryBuilderTest extends AbstractFilesQueryTests {
 
 	public function testAddRequirement() {
 		$builder = $this->builder();
-		$builder->addRequirement(FilesQueryRequirements::REQUIRE_ONE);
+		$this->assertEquals($builder, $builder->addRequirement(FilesQueryRequirements::REQUIRE_ONE));
 		$this->assertEquals(array(
 			FilesQueryRequirements::REQUIRE_ONE
 		), $this->callNonPublicMethod('_getRequirements'));
@@ -118,6 +138,10 @@ class FilesQueryBuilderTest extends AbstractFilesQueryTests {
 	}
 
 	public function testShowErrors() {
+		$builder = $this->builder();
+		$this->assertEquals($builder, $builder->showErrors(true));
+	}
+	public function testShowErrorsException() {
 		$this->setExpectedException('FQ\Exceptions\FileQueryRequirementsException');
 		$builder = $this->builder();
 		$builder->showErrors(true)->addRequirement(FilesQueryRequirements::REQUIRE_ONE)->run('does-not-exist');
@@ -146,7 +170,9 @@ class FilesQueryBuilderTest extends AbstractFilesQueryTests {
 	}
 	public function testRunBasicBuilder() {
 		$builder = $this->builder();
+		$queryInstance = $this->query();
 		$query = $builder->run('File2');
+		$this->assertEquals($queryInstance, $query);
 		$this->assertEquals(array(
 			self::ROOT_DIR_DEFAULT_ID => self::ROOT_DIR_DEFAULT_ABSOLUTE_PATH . '/child1/File2.php'
 		), $query->listPaths());
@@ -155,7 +181,7 @@ class FilesQueryBuilderTest extends AbstractFilesQueryTests {
 		$files = $this->files();
 		$files->addRootDir($this->_newActualRootDirSecond());
 		$builder = $this->builder();
-		$builder->filters(FilesQuery::FILTER_EXISTING);
+		$this->assertEquals($builder, $builder->filters(FilesQuery::FILTER_EXISTING));
 		$query = $builder->run('File1');
 		$this->assertEquals(array(
 			self::ROOT_DIR_DEFAULT_ID => self::ROOT_DIR_DEFAULT_ABSOLUTE_PATH . '/child1/File1.php',

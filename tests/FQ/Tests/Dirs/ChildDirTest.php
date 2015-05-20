@@ -27,4 +27,16 @@ class ChildDirTest extends AbstractFQTest {
 		$childDir->defaultFileExtension('');
 		$this->assertEquals(Files::DEFAULT_EXTENSION, $childDir->defaultFileExtension());
 	}
+
+	public function testFullAbsolutePath() {
+		$rootDir = $this->_newActualRootDir();
+		$childDir = $this->_newActualChildDir();
+		$this->assertEquals(self::ROOT_DIR_DEFAULT_ABSOLUTE_PATH . '/' . self::CHILD_DIR_DEFAULT_DIR, $childDir->fullAbsolutePath($rootDir));
+	}
+
+	public function testFullBasePath() {
+		$rootDir = $this->_newActualRootDir();
+		$childDir = $this->_newActualChildDir();
+		$this->assertEquals(self::ROOT_DIR_DEFAULT_BASE_PATH . '/' . self::CHILD_DIR_DEFAULT_DIR, $childDir->fullBasePath($rootDir));
+	}
 }

@@ -56,6 +56,11 @@ class FilesQueryBuilder  {
 	}
 
 	public function includeRootDirs($rootDirs) {
+		if ($rootDirs === null) {
+			// don't include anything
+			return $this;
+		}
+
 		if (is_array($rootDirs)) {
 			foreach ($rootDirs as $rootDir) {
 				$this->_addToDirSelection(DirSelection::FILTER_INCLUDE, $this->rootSelection(), $rootDir);
@@ -68,6 +73,11 @@ class FilesQueryBuilder  {
 		return $this;
 	}
 	public function excludeRootDirs($rootDirs) {
+		if ($rootDirs === null) {
+			// don't exclude anything
+			return $this;
+		}
+
 		if (is_array($rootDirs)) {
 			foreach ($rootDirs as $rootDir) {
 				$this->_addToDirSelection(DirSelection::FILTER_EXCLUDE, $this->rootSelection(), $rootDir);
@@ -87,6 +97,11 @@ class FilesQueryBuilder  {
 	}
 
 	public function includeChildDirs($childDirs) {
+		if ($childDirs === null) {
+			// don't include anything
+			return $this;
+		}
+
 		if (is_array($childDirs)) {
 			foreach ($childDirs as $childDir) {
 				$this->_addToDirSelection(DirSelection::FILTER_INCLUDE, $this->childSelection(), $childDir);
@@ -99,6 +114,11 @@ class FilesQueryBuilder  {
 		return $this;
 	}
 	public function excludeChildDirs($childDirs) {
+		if ($childDirs === null) {
+			// don't exclude anything
+			return $this;
+		}
+
 		if (is_array($childDirs)) {
 			foreach ($childDirs as $childDir) {
 				$this->_addToDirSelection(DirSelection::FILTER_EXCLUDE, $this->childSelection(), $childDir);

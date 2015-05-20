@@ -3,6 +3,7 @@
 namespace FQ\Tests\Collections;
 
 use FQ\Collections\DirCollection;
+use FQ\Dirs\Dir;
 
 class DirCollectionTest extends AbstractDirCollectionTests {
 
@@ -33,6 +34,47 @@ class DirCollectionTest extends AbstractDirCollectionTests {
 		$this->assertNotNull($firstDir);
 		$this->assertNotNull($secondDir);
 		$this->assertEquals(2, $this->dirCollection()->totalDirs());
+	}
+
+	public function testRemoveDir() {
+		$firstDir = $this->_addDirToCollection();
+		$secondDir = $this->_addDirToCollection();
+		$collection = $this->dirCollection();
+		$this->assertEquals($secondDir, $collection->removeDir($secondDir));
+		$this->assertEquals(array($firstDir), $collection->dirs());
+	}
+	public function testRemoveDirNotPresentInTheCollection() {
+		$collection = $this->dirCollection();
+		$this->assertFalse($collection->removeDir($this->_newActualDir()));
+	}
+	public function testRemoveDirById() {
+		$firstDir = $this->_addDirToCollection();
+		$this->_addDirToCollection(new Dir('custom-id', 'dir'));
+		$collection = $this->dirCollection();
+		$this->assertTrue($collection->removeDirById('custom-id'));
+		$this->assertEquals(array($firstDir), $collection->dirs());
+	}
+	public function testRemoveDirByIdNotPresentInTheCollection() {
+		$collection = $this->dirCollection();
+		$this->assertFalse($collection->removeDirById('does-not-exist'));
+	}
+	public function testRemoveDirAtIndex() {
+		$firstDir = $this->_addDirToCollection();
+		$this->_addDirToCollection();
+		$collection = $this->dirCollection();
+		$this->assertTrue($collection->removeDirAtIndex(1));
+		$this->assertEquals(array($firstDir), $collection->dirs());
+	}
+	public function testRemoveDirAtIndexNotPresentInTheCollection() {
+		$collection = $this->dirCollection();
+		$this->assertFalse($collection->removeDirAtIndex(2));
+	}
+	public function testRemoveAllDirs() {
+		$this->_addDirToCollection();
+		$this->_addDirToCollection();
+		$collection = $this->dirCollection();
+		$collection->removeAllDirs();
+		$this->assertEquals(array(), $collection->dirs());
 	}
 
 	public function testGetDirByCustomId() {
