@@ -103,9 +103,6 @@ class FilesQueryTest extends AbstractFilesQueryTests {
 		$query = $this->query();
 		$currentRootDirSelection = $query->getRootDirSelection();
 		$this->assertEquals('FQ\Query\Selection\RootSelection', get_class($currentRootDirSelection));
-
-		$newRootDirSelection = $query->getRootDirSelection(true);
-		$this->assertNotEquals(spl_object_hash($currentRootDirSelection), spl_object_hash($newRootDirSelection));
 	}
 
 	public function testSetChildDirSelection() {
@@ -121,9 +118,6 @@ class FilesQueryTest extends AbstractFilesQueryTests {
 		$query = $this->query();
 		$currentChildDirSelection = $query->getChildDirSelection();
 		$this->assertEquals('FQ\Query\Selection\ChildSelection', get_class($currentChildDirSelection));
-
-		$newRootDirSelection = $query->getChildDirSelection(true);
-		$this->assertNotEquals(spl_object_hash($currentChildDirSelection), spl_object_hash($newRootDirSelection));
 	}
 
 	public function testIsValidChildDir() {
@@ -170,7 +164,7 @@ class FilesQueryTest extends AbstractFilesQueryTests {
 	public function testProcessQueryChild() {
 		$query = $this->query();
 		$childDirs = $query->files()->childDirs();
-		$this->assertNotFalse($this->callNonPublicMethod('_processQueryChild', array($childDirs[0], $query->getCurrentRootDirSelection())));
+		$this->assertNotFalse($this->callNonPublicMethod('_prepareQueryChild', array($childDirs[0], $query->getCurrentRootDirSelection())));
 	}
 	public function testRunQueryWhenRequirementsAreNotMet() {
 		$query = $this->query();

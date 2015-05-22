@@ -2,13 +2,19 @@
 
 namespace FQ\Query;
 
-use FQ\Dirs\ChildDir;
 use FQ\Dirs\RootDir;
+use FQ\Dirs\ChildDir;
 use FQ\Exceptions\FileQueryException;
 use FQ\Files;
 use FQ\Query\Selection\ChildSelection;
 use FQ\Query\Selection\RootSelection;
 
+/**
+ * Class FilesQuery
+ * @package FQ\Query
+ *
+ * @todo Ability to lock selections if you have a reoccurring queries
+ */
 class FilesQuery {
 
 	/**
@@ -40,6 +46,10 @@ class FilesQuery {
 	 * @var RootDir[]
 	 */
 	private $_cachedQueryRootDirs;
+	/**
+	 * @var ChildDir[]
+	 */
+	private $_cachedQueryChildDirs;
 
 	/**
 	 * @var array
@@ -98,7 +108,6 @@ class FilesQuery {
 	 * @param Files $files
 	 */
 	function __construct(Files $files) {
-		$this->_requirements = new FilesQueryRequirements();
 		$this->_files = $files;
 
 		$this->reset();
@@ -130,6 +139,9 @@ class FilesQuery {
 	 * @return FilesQueryRequirements
 	 */
 	public function requirements() {
+		if ($this->_requirements === null) {
+			$this->_requirements = new FilesQueryRequirements($this);
+		}
 		return $this->_requirements;
 	}
 
@@ -167,21 +179,29 @@ class FilesQuery {
 		return in_array($filter, $this->filters());
 	}
 
-	public function setRootDirSelection(RootSelection $selection) {
-		$this->_rootDirSelection = $selection;
+	/**
+	 * @param RootSelection $rootDirSelection
+	 */
+	public function setRootDirSelection(RootSelection $rootDirSelection) {
+		$this->_cachedQueryRootDirs = null;
+		$this->_rootDirSelection = $rootDirSelection;
 	}
-	public function getRootDirSelection($createNewSelection = false) {
-		if ($this->_rootDirSelection === null || $createNewSelection) {
+	public function getRootDirSelection() {
+		if ($this->_rootDirSelection === null) {
 			$this->_rootDirSelection = new RootSelection();
 		}
 		return $this->_rootDirSelection;
 	}
 
-	public function setChildDirSelection(ChildSelection $selection) {
-		$this->_childDirSelection = $selection;
+	/**
+	 * @param ChildSelection $childDirSelection
+	 */
+	public function setChildDirSelection(ChildSelection $childDirSelection) {
+		$this->_cachedQueryChildren = null;
+		$this->_childDirSelection = $childDirSelection;
 	}
-	public function getChildDirSelection($createNewSelection = false) {
-		if ($this->_childDirSelection === null || $createNewSelection) {
+	public function getChildDirSelection() {
+		if ($this->_childDirSelection === null) {
 			$this->_childDirSelection = new ChildSelection();
 		}
 		return $this->_childDirSelection;
@@ -236,7 +256,7 @@ class FilesQuery {
 
 	/**
 	 * @param string $fileName The name of the file the query will be executing
-	 * @return null|string[]
+	 * @return bool
 	 */
 	public function run($fileName) {
 		if ($this->files()->totalRootDirs() === 0) {
@@ -244,18 +264,33 @@ class FilesQuery {
 		}
 
 		$this->_queriedFileName = $fileName;
+
+		if ($this->getRootDirSelection()->isInvalidated()) {
+			$this->_cachedQueryRootDirs;
+		}
+		if ($this->getChildDirSelection()->isInvalidated()) {
+			$this->_cachedQueryChildren;
+		}
 		$rootDirsSelection = $this->_getCachedRootDirSelection();
 
 		$this->_currentQueryChildren = array();
-		foreach ($this->getCurrentChildDirSelection() as $childDir) {
-			$this->_currentQueryChildren[$childDir->id()] = $this->_processQueryChild($childDir, $rootDirsSelection);;
+		foreach ($this->_getCachedChildDirSelection() as $childDir) {
+			$this->_currentQueryChildren[$childDir->id()] = $this->_prepareQueryChild($childDir, $rootDirsSelection);
 		}
 		$this->_hasRun = true;
-		$meetsRequirements = $this->requirements()->meetsRequirements($this, false);
+		$meetsRequirements = $this->requirements()->meetsRequirements(false);
 		if ($meetsRequirements !== true) {
 			$this->_queryError = $meetsRequirements;
 		}
 		return $this->_queryError === null;
+	}
+
+	protected function _prepareQueryChild(ChildDir $childDir, $rootDirs) {
+		$queryChild = $this->_getQueryChild($childDir);
+		$queryChild->reset();
+		$queryChild->setRootDirs($rootDirs);
+
+		return $queryChild;
 	}
 
 	public function load() {
@@ -279,14 +314,6 @@ class FilesQuery {
 	public function getCurrentRootDirSelection() {
 		return $this->getRootDirSelection()->getSelection($this->files()->rootDirs());
 	}
-
-	/**
-	 * @return ChildDir[]
-	 */
-	public function getCurrentChildDirSelection() {
-		return $this->getChildDirSelection()->getSelection($this->files()->childDirs());
-	}
-
 	protected function _getCachedRootDirSelection() {
 		if ($this->_cachedQueryRootDirs === null) {
 			$this->_cachedQueryRootDirs = $this->getCurrentRootDirSelection();
@@ -294,11 +321,17 @@ class FilesQuery {
 		return $this->_cachedQueryRootDirs;
 	}
 
-	protected function _processQueryChild(ChildDir $childDir, $rootSelection) {
-		$queryChild = $this->_getQueryChild($childDir);
-		$queryChild->reset();
-		$queryChild->setRootDirs($rootSelection);
-		return $queryChild;
+	/**
+	 * @return ChildDir[]
+	 */
+	public function getCurrentChildDirSelection() {
+		return $this->getChildDirSelection()->getSelection($this->files()->childDirs());
+	}
+	protected function _getCachedChildDirSelection() {
+		if ($this->_cachedQueryChildDirs === null) {
+			$this->_cachedQueryChildDirs = $this->getCurrentChildDirSelection();
+		}
+		return $this->_cachedQueryChildDirs;
 	}
 
 	/**
@@ -418,6 +451,10 @@ class FilesQuery {
 		return $paths;
 	}
 
+	/**
+	 * @param string[] $paths
+	 * @return string[]
+	 */
 	public function reversePaths($paths) {
 		return array_reverse($paths);
 	}

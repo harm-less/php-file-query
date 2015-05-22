@@ -20,30 +20,30 @@ class Simple extends SampleBootstrapper {
 	}
 
 	public function queryFile1FromChild1() {
-		$builder = new FilesQueryBuilder($this);
+		$builder = new FilesQueryBuilder($this->query());
 		return $builder->includeChildDirs('child1')->run('File1')->listPaths();
 	}
 
 	public function queryFile1FromRoot1AndFromChild1() {
-		$builder = new FilesQueryBuilder($this);
+		$builder = new FilesQueryBuilder($this->query());
 		return $builder->includeRootDirs('root1')->includeChildDirs('child1')->run('File1')->listPaths();
 	}
 	public function queryFile1InReverse() {
-		$builder = new FilesQueryBuilder($this);
+		$builder = new FilesQueryBuilder($this->query());
 		return $builder->reverse(true)->run('File1')->listPaths();
 	}
 
 	public function queryNonExistingFileWithRequirementOne() {
-		$builder = new FilesQueryBuilder($this);
+		$builder = new FilesQueryBuilder($this->query());
 		return $builder->addRequirement(FilesQueryRequirements::REQUIRE_ONE)->run('File1')->listPaths();
 	}
 
 	public function queryNonExistingFileWithRequirementLast() {
-		$builder = new FilesQueryBuilder($this);
+		$builder = new FilesQueryBuilder($this->query());
 		return $builder->addRequirement(FilesQueryRequirements::REQUIRE_LAST)->run('File1')->listPaths();
 	}
 	public function queryNonExistingFileWithRequirementAll() {
-		$builder = new FilesQueryBuilder($this);
+		$builder = new FilesQueryBuilder($this->query());
 		return $builder->addRequirement(FilesQueryRequirements::REQUIRE_ALL)->run('File1')->listPaths();
 	}
 }

@@ -28,7 +28,7 @@ class FilesQueryRequirementsTest extends AbstractFilesQueryTests {
 
 	public function testConstructor()
 	{
-		$filesQueryRequirements = new FilesQueryRequirements();
+		$filesQueryRequirements = new FilesQueryRequirements($this->query());
 		$this->assertNotNull($filesQueryRequirements);
 		$this->assertTrue($filesQueryRequirements instanceof FilesQueryRequirements);
 		$this->assertEquals(3, $filesQueryRequirements->countRegisteredRequirements());
@@ -211,13 +211,13 @@ class FilesQueryRequirementsTest extends AbstractFilesQueryTests {
 
 	public function testMeetsRequirementsWithoutAnyActiveRequirements() {
 		$requirements = $this->_getRequirementsInstance();
-		$this->assertTrue($requirements->meetsRequirements($this->query()));
+		$this->assertTrue($requirements->meetsRequirements());
 	}
 	public function testMeetsRequirementsWithOneRequirement() {
 		$requirements = $this->_getRequirementsInstance();
 		$requirements->addRequirement(FilesQueryRequirements::REQUIRE_ONE);
 		$this->runQuery();
-		$this->assertTrue($requirements->meetsRequirements($this->query()));
+		$this->assertTrue($requirements->meetsRequirements());
 	}
 	public function testMeetsRequirementsWithOneRequirementThatWillFail() {
 		$this->setExpectedException('\FQ\Exceptions\FileQueryRequirementsException');
@@ -225,7 +225,7 @@ class FilesQueryRequirementsTest extends AbstractFilesQueryTests {
 		$requirements->addRequirement(FilesQueryRequirements::REQUIRE_ALL);
 		$this->files()->addRootDir($this->_newActualRootDirSecond());
 		$this->runQuery();
-		$this->assertTrue($requirements->meetsRequirements($this->query()));
+		$this->assertTrue($requirements->meetsRequirements());
 	}
 	public function testMeetsRequirementsWithOneRequirementThatWillFailButIsNotThrowingAnError() {
 		$this->setExpectedException('\FQ\Exceptions\FileQueryRequirementsException');
@@ -233,14 +233,14 @@ class FilesQueryRequirementsTest extends AbstractFilesQueryTests {
 		$requirements->addRequirement(FilesQueryRequirements::REQUIRE_ALL);
 		$this->files()->addRootDir($this->_newActualRootDirSecond());
 		$this->runQuery();
-		throw $requirements->meetsRequirements($this->query(), false);
+		throw $requirements->meetsRequirements(false);
 	}
 
 	/**
 	 * @return FilesQueryRequirements
 	 */
 	protected function _newRequirements() {
-		return new FilesQueryRequirements();
+		return new FilesQueryRequirements($this->query());
 	}
 
 	protected function _getRequirementsInstance() {

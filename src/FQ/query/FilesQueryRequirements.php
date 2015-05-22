@@ -6,6 +6,7 @@ use FQ\Exceptions\FileQueryRequirementsException;
 
 class FilesQueryRequirements {
 
+	private $_query;
 	/**
 	 * @var string[] Requirements of the query
 	 */
@@ -23,7 +24,8 @@ class FilesQueryRequirements {
 	const REQUIRE_LAST = 'require_last';
 	const REQUIRE_ALL = 'require_all';
 
-	function __construct() {
+	function __construct(FilesQuery $query) {
+		$this->_query = $query;
 		$this->_requirements = array();
 
 		$this->registerRequirement(self::REQUIRE_ONE, array($this, 'requirementAtLeastOne'));
@@ -246,21 +248,20 @@ class FilesQueryRequirements {
 	/**
 	 * Checks if the query meets all its requirements
 	 *
-	 * @param FilesQuery $query
 	 * @param bool $throwExceptionOnFail
 	 * @throws \Exception When $throwExceptionOnFail is set to true and one of the requirements fails, it will throw
 	 * the exception from that fail. Otherwise this exception will be returned
 	 * @return mixed Returns true if all requirements are met. Otherwise returns an un-thrown exception
 	 * if 'throwExceptionOnFail' is set to false or the response from the requirement
 	 */
-	public function meetsRequirements(FilesQuery $query, $throwExceptionOnFail = true) {
+	public function meetsRequirements($throwExceptionOnFail = true) {
 		// if there are no requirements it certainly is valid and it can be returned immediately
 		if (!$this->hasRequirements()) {
 			return true;
 		}
 
 		foreach ($this->requirements() as $requirement) {
-			$attempt = $this->tryRequirement($requirement, $query);
+			$attempt = $this->tryRequirement($requirement, $this->_query);
 			if ($attempt instanceof \Exception && $throwExceptionOnFail === true) {
 				throw $attempt;
 			}

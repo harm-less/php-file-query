@@ -3,55 +3,62 @@
 namespace FQ\Query;
 
 use FQ\Exceptions\FileQueryBuilderException;
-use FQ\Files;
-use FQ\Query\Selection\ChildSelection;
 use FQ\Query\Selection\DirSelection;
 use FQ\Query\Selection\RootSelection;
+use FQ\Query\Selection\ChildSelection;
 
 class FilesQueryBuilder  {
 
-	private $_files;
+	private $_query;
 
 	private $_fileName;
+	/**
+	 * @var RootSelection
+	 */
 	private $_rootDirSelection;
+	/**
+	 * @var ChildSelection
+	 */
 	private $_childDirSelection;
 	private $_requirements;
 	private $_filters;
 	private $_reverse;
 	private $_showErrors;
-	private $_reset;
+	private $_resetQuery;
 
-	function __construct(Files $files) {
-		$this->_childDirs = array();
-		$this->_requirements = array();
+	private $_isPrepared;
 
-		$this->_files = $files;
+	function __construct(FilesQuery $query) {
+		$this->_query = $query;
+
+		$this->reset();
 	}
 
-	protected function _files() {
-		return $this->_files;
+	protected function _query() {
+		return $this->_query;
 	}
 
 	public function fileName($fileName) {
 		$this->_fileName = $fileName;
 		return $this;
 	}
-	protected function getFileName() {
+	public function getFileName() {
 		return $this->_fileName;
 	}
-	protected function _reset() {
-		return $this->_reset === null ? true : $this->_reset;
+
+	public function resetsQuery() {
+		return $this->_resetQuery === null ? true : $this->_resetQuery;
 	}
-	protected function _getRequirements() {
+	public function getRequirements() {
 		return $this->_requirements;
 	}
-	protected function _isReversed() {
+	public function isReversed() {
 		return $this->_reverse === null ? false : $this->_reverse;
 	}
-	protected function _getFilters() {
+	public function getFilters() {
 		return $this->_filters;
 	}
-	protected function _showErrors() {
+	public function showsErrors() {
 		return $this->_showErrors === null ? true : $this->_showErrors;
 	}
 
@@ -89,11 +96,21 @@ class FilesQueryBuilder  {
 
 		return $this;
 	}
+
+	/**
+	 * @return RootSelection
+	 */
 	public function rootSelection() {
 		if ($this->_rootDirSelection === null) {
 			$this->_rootDirSelection = new RootSelection();
 		}
 		return $this->_rootDirSelection;
+	}
+	/**
+	 * @return bool
+	 */
+	protected function _hasActiveRootSelection() {
+		return $this->_rootDirSelection !== null;
 	}
 
 	public function includeChildDirs($childDirs) {
@@ -130,11 +147,21 @@ class FilesQueryBuilder  {
 
 		return $this;
 	}
+
+	/**
+	 * @return ChildSelection
+	 */
 	public function childSelection() {
 		if ($this->_childDirSelection === null) {
 			$this->_childDirSelection = new ChildSelection();
 		}
 		return $this->_childDirSelection;
+	}
+	/**
+	 * @return bool
+	 */
+	protected function _hasActiveChildSelection() {
+		return $this->_childDirSelection !== null;
 	}
 
 	protected function _addToDirSelection($type, DirSelection $selectionObj, $dir) {
@@ -173,7 +200,7 @@ class FilesQueryBuilder  {
 		return $this;
 	}
 
-	public function filters($filters = null) {
+	public function filters($filters) {
 		$this->_filters = $filters;
 		return $this;
 	}
@@ -183,16 +210,25 @@ class FilesQueryBuilder  {
 		return $this;
 	}
 
-	public function run($fileName = null) {
-		$query = $this->_files()->query($this->rootSelection(), $this->childSelection(), $this->_reset(), $this->_reset());
-		$requirements = $query->requirements();
-		$requirements->addRequirements($this->_getRequirements());
-		$query->reverse($this->_isReversed());
-
-		$filters = $this->_getFilters();
-		if ($filters !== null) {
-			$query->filters($filters);
+	public function reset() {
+		if ($this->_childDirSelection !== null) {
+			$this->_childDirSelection->reset();
 		}
+		if ($this->_rootDirSelection !== null) {
+			$this->_rootDirSelection->reset();
+		}
+		$this->_filters = null;
+		$this->_fileName = null;
+		$this->_isPrepared = null;
+		$this->_reverse = null;
+		$this->_showErrors = null;
+		$this->_requirements = array();
+		return $this;
+	}
+
+	public function run($fileName = null) {
+
+		$query = $this->prepare();
 
 		$fileNameToUse = $fileName !== null ? $fileName : $this->getFileName();
 		if (!is_string($fileNameToUse)) {
@@ -200,9 +236,41 @@ class FilesQueryBuilder  {
 		}
 
 		$result = $query->run($fileNameToUse);
-		if ($result !== true && $this->_showErrors()) {
+		if ($result !== true && $this->showsErrors()) {
 			throw $query->queryError();
 		}
+		return $query;
+	}
+
+	public function prepare() {
+		$query = $this->_query();
+
+		// reset the query if that is necessary
+		if($this->resetsQuery()) {
+			$query->reset();
+		}
+
+		// add the requirements to the query
+		$requirements = $query->requirements();
+		$requirements->addRequirements($this->getRequirements());
+
+		// reverse the query if necessary
+		$query->reverse($this->isReversed());
+
+		// apply the set filters to the query
+		$filters = $this->getFilters();
+		if ($filters !== null) {
+			$query->filters($filters);
+		}
+
+		if ($this->_hasActiveRootSelection() !== null) {
+			$query->setRootDirSelection($this->rootSelection());
+		}
+		if ($this->_hasActiveChildSelection() !== null) {
+			$query->setChildDirSelection($this->childSelection());
+		}
+
+		$this->_isPrepared = true;
 		return $query;
 	}
 }

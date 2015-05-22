@@ -19,7 +19,7 @@ class FilesQueryBuilderTest extends AbstractFilesQueryTests {
 	function setUp() {
 		parent::setUp();
 
-		$this->_builder = new FilesQueryBuilder($this->files());
+		$this->_builder = new FilesQueryBuilder($this->query());
 		$this->nonPublicMethodObject($this->builder());
 	}
 	protected function builder() {
@@ -28,7 +28,7 @@ class FilesQueryBuilderTest extends AbstractFilesQueryTests {
 
 	public function testConstructor()
 	{
-		$builder = new FilesQueryBuilder($this->files());
+		$builder = new FilesQueryBuilder($this->query());
 		$this->assertNotNull($builder);
 		$this->assertTrue($builder instanceof FilesQueryBuilder);
 	}
@@ -123,18 +123,18 @@ class FilesQueryBuilderTest extends AbstractFilesQueryTests {
 		$this->assertEquals($builder, $builder->addRequirement(FilesQueryRequirements::REQUIRE_ONE));
 		$this->assertEquals(array(
 			FilesQueryRequirements::REQUIRE_ONE
-		), $this->callNonPublicMethod('_getRequirements'));
+		), $this->callNonPublicMethod('getRequirements'));
 	}
 
 	public function testReverse() {
 		$builder = $this->builder();
-		$this->assertFalse($this->callNonPublicMethod('_isReversed'));
+		$this->assertFalse($this->callNonPublicMethod('isReversed'));
 
 		$builder->reverse(true);
-		$this->assertTrue($this->callNonPublicMethod('_isReversed'));
+		$this->assertTrue($this->callNonPublicMethod('isReversed'));
 
 		$builder->reverse(false);
-		$this->assertFalse($this->callNonPublicMethod('_isReversed'));
+		$this->assertFalse($this->callNonPublicMethod('isReversed'));
 	}
 
 	public function testShowErrors() {
@@ -149,18 +149,60 @@ class FilesQueryBuilderTest extends AbstractFilesQueryTests {
 
 	public function testFilter() {
 		$builder = $this->builder();
-		$this->assertNull($this->callNonPublicMethod('_getFilters'));
+		$this->assertNull($this->callNonPublicMethod('getFilters'));
 
 		$builder->filters(array());
-		$this->assertEquals(array(), $this->callNonPublicMethod('_getFilters'));
+		$this->assertEquals(array(), $this->callNonPublicMethod('getFilters'));
 
 		$builder->filters(FilesQuery::FILTER_EXISTING);
-		$this->assertEquals(FilesQuery::FILTER_EXISTING, $this->callNonPublicMethod('_getFilters'));
+		$this->assertEquals(FilesQuery::FILTER_EXISTING, $this->callNonPublicMethod('getFilters'));
 
 		$builder->filters(array(FilesQuery::FILTER_EXISTING));
 		$this->assertEquals(array(
 			FilesQuery::FILTER_EXISTING
-		), $this->callNonPublicMethod('_getFilters'));
+		), $this->callNonPublicMethod('getFilters'));
+	}
+
+	public function testReset() {
+		$builder = $this->builder();
+
+		$this->assertEquals(array(), $builder->rootSelection()->getIncludedDirsByDir());
+		$this->assertEquals(array(), $builder->childSelection()->getIncludedDirsByDir());
+		$this->assertNull($builder->getFilters());
+		$this->assertEquals(array(), $builder->getRequirements());
+		$this->assertNull($builder->getFileName());
+		$this->assertFalse($builder->isReversed());
+		$this->assertTrue($builder->showsErrors());
+
+		$rootDirFirst = $this->_newActualRootDir();
+		$rootDirSecond = $this->_newActualRootDirSecond();
+		$childDir = $this->_newActualChildDir();
+		$builder
+			->includeRootDirs(array($rootDirFirst, $rootDirSecond))
+			->includeChildDirs($childDir)
+			->filters(array(), false)
+			->addRequirement(FilesQueryRequirements::REQUIRE_ALL)
+			->fileName('Test')
+			->reverse(true)
+			->showErrors(false);
+
+		$this->assertEquals(array($rootDirFirst, $rootDirSecond), $builder->rootSelection()->getIncludedDirsByDir());
+		$this->assertEquals(array($childDir), $builder->childSelection()->getIncludedDirsByDir());
+		$this->assertEquals(array(), $builder->getFilters());
+		$this->assertEquals(array(FilesQueryRequirements::REQUIRE_ALL), $builder->getRequirements());
+		$this->assertEquals('Test', $builder->getFileName());
+		$this->assertTrue($builder->isReversed());
+		$this->assertFalse($builder->showsErrors());
+
+		$builder->reset();
+
+		$this->assertEquals(array(), $builder->rootSelection()->getIncludedDirsByDir());
+		$this->assertEquals(array(), $builder->childSelection()->getIncludedDirsByDir());
+		$this->assertNull($builder->getFilters());
+		$this->assertEquals(array(), $builder->getRequirements());
+		$this->assertNull($builder->getFileName());
+		$this->assertFalse($builder->isReversed());
+		$this->assertTrue($builder->showsErrors());
 	}
 
 	public function testRunBasicBuilderWithoutAFileName() {

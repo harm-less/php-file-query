@@ -6,6 +6,8 @@ use FQ\Dirs\ChildDir;
 use FQ\Dirs\RootDir;
 use FQ\Files;
 use FQ\Query\FilesQuery;
+use FQ\Query\Selection\ChildSelection;
+use FQ\Query\Selection\RootSelection;
 
 class FilesTest extends AbstractFQTest {
 
@@ -201,6 +203,22 @@ class FilesTest extends AbstractFQTest {
 		$this->files()->getFullPath($rootDir, null);
 	}
 
+	public function testPrepareQuery() {
+
+		$rootDir = $this->_addRootDir();
+		$childDir = $this->_addChildDir();
+
+		$rootSelection = new RootSelection();
+		$rootSelection->excludeDir($rootDir);
+
+		$childSelection = new ChildSelection();
+		$childSelection->excludeDir($childDir);
+
+		$query = $this->files()->prepareQuery($rootSelection, $childSelection);
+		$this->assertTrue($query->run('File2'));
+		$this->assertEquals(array(), $query->listPaths());
+	}
+
 	public function testQueryPathWithTwoRootDirs() {
 		$files = $this->files();
 		$this->_addRootDir();
@@ -257,8 +275,6 @@ class FilesTest extends AbstractFQTest {
 		$this->assertTrue($files->fileExists('File2'));
 		$this->assertFalse($files->fileExists('does-not-exist'));
 	}
-
-
 
 
 	protected function _addRootDir($index = null, RootDir $rootDir = null, $required = false) {

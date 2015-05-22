@@ -2,10 +2,10 @@
 
 namespace FQ;
 
-use FQ\Collections\ChildDirCollection;
 use FQ\Collections\RootDirCollection;
-use FQ\Dirs\ChildDir;
+use FQ\Collections\ChildDirCollection;
 use FQ\Dirs\RootDir;
+use FQ\Dirs\ChildDir;
 use FQ\Exceptions\FilesException;
 use FQ\Query\FilesQuery;
 use FQ\Query\FilesQueryRequirements;
@@ -274,6 +274,19 @@ class Files {
 		return $childObj->fullAbsolutePath($rootDirObj);
 	}
 
+	public function prepareQuery(RootSelection $rootSelection = null, ChildSelection $childSelection = null, $reset = true, $resetSelection = true) {
+		$query = $this->query();
+		if ($reset) $query->reset();
+		if ($resetSelection) $query->resetSelection();
+		if ($rootSelection !== null) {
+			$query->setRootDirSelection($rootSelection);
+		}
+		if ($childSelection !== null) {
+			$query->setChildDirSelection($childSelection);
+		}
+		return $query;
+	}
+
 	/**
 	 * @param string $fileName
 	 * @param ChildSelection $childSelection
@@ -282,7 +295,7 @@ class Files {
 	 * @return false|string
 	 */
 	public function queryPath($fileName, ChildSelection $childSelection = null, RootSelection $rootSelection = null, $reverseLoad = false) {
-		$query = $this->query($rootSelection, $childSelection, true, true);
+		$query = $this->prepareQuery($rootSelection, $childSelection);
 		$query->reverse($reverseLoad);
 		$query->requirements(FilesQueryRequirements::REQUIRE_ONE);
 		if ($query->run($fileName)) {
@@ -309,15 +322,15 @@ class Files {
 
 	/**
 	 * @param string $fileName
-	 * @param RootSelection $rootDirs
-	 * @param ChildSelection $children
+	 * @param RootSelection $rootSelection
+	 * @param ChildSelection $childSelection
 	 * @param string $requiredLevels
 	 * @param bool $reverseLoad
 	 * @return bool
 	 */
-	public function loadFiles($fileName, RootSelection $rootDirs = null, ChildSelection $children = null, $requiredLevels = FilesQueryRequirements::REQUIRE_ONE, $reverseLoad = false)
+	public function loadFiles($fileName, RootSelection $rootSelection = null, ChildSelection $childSelection = null, $requiredLevels = FilesQueryRequirements::REQUIRE_ONE, $reverseLoad = false)
 	{
-		$query = $this->query($rootDirs, $children, true, true);
+		$query = $this->prepareQuery($rootSelection, $childSelection);
 		$query->reverse($reverseLoad);
 		$query->requirements($requiredLevels);
 		if ($query->run($fileName)) {
@@ -334,46 +347,33 @@ class Files {
 
 	/**
 	 * @param string $fileName
-	 * @param RootSelection $rootDirs
-	 * @param ChildSelection $children
+	 * @param RootSelection $rootSelection
+	 * @param ChildSelection $childSelection
 	 * @return array
 	 */
-	public function queryPaths($fileName, RootSelection $rootDirs = null, ChildSelection $children = null) {
-		$query = $this->query($rootDirs, $children, true, true);
+	public function queryPaths($fileName, RootSelection $rootSelection = null, ChildSelection $childSelection = null) {
+		$query = $this->prepareQuery($rootSelection, $childSelection);
 		$query->run($fileName);
 		return $query->listPaths();
 	}
 
 	/**
 	 * @param string $fileName
-	 * @param RootSelection $rootDirs
-	 * @param ChildSelection $children
+	 * @param RootSelection $rootSelection
+	 * @param ChildSelection $childSelection
 	 * @return bool
 	 */
-	public function fileExists($fileName, RootSelection $rootDirs = null, ChildSelection $children = null) {
-		$query = $this->query($rootDirs, $children, true, true);
+	public function fileExists($fileName, RootSelection $rootSelection = null, ChildSelection $childSelection = null) {
+		$query = $this->prepareQuery($rootSelection, $childSelection);
 		$query->run($fileName);
 		return $query->hasPaths();
 	}
 
 	/**
-	 * @param RootSelection $rootDirs
-	 * @param ChildSelection $children
-	 * @param bool $resetQuery
-	 * @param bool $resetSelection
 	 * @return FilesQuery
 	 */
-	public function query(RootSelection $rootDirs = null, ChildSelection $children = null, $resetQuery = true, $resetSelection = false) {
-		$query = $this->_query;
-		if ($resetQuery) {
-			$query->reset();
-		}
-		if ($resetSelection) {
-			$query->resetSelection();
-		}
-		if ($rootDirs) $query->setRootDirSelection($rootDirs);
-		if ($children) $query->setChildDirSelection($children);
-		return $query;
+	public function query() {
+		return $this->_query;
 	}
 
 	/**
