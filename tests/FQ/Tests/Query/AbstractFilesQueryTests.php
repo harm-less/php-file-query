@@ -2,8 +2,6 @@
 
 namespace FQ\Tests\Query;
 
-use FQ\Collections\Dirs\DirCollection;
-use FQ\Dirs\ChildDir;
 use FQ\Query\FilesQuery;
 use FQ\Query\FilesQueryChild;
 use FQ\Tests\AbstractFQTest;
@@ -45,8 +43,8 @@ class AbstractFilesQueryTests extends AbstractFQTest {
 		return $this->_queryChild;
 	}
 
-	protected function runQuery($filename = 'File2') {
-		return $this->query()->run($filename);
+	protected function runQuery($filename = 'File2', $throwErrors = false) {
+		return $this->query()->run($filename, $throwErrors);
 	}
 
 	/**

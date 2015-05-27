@@ -8,6 +8,7 @@ use FQ\Exceptions\FileQueryException;
 use FQ\Files;
 use FQ\Query\Selection\ChildSelection;
 use FQ\Query\Selection\RootSelection;
+use FQ\Utils\Dirs;
 
 /**
  * Class FilesQuery
@@ -45,7 +46,16 @@ class FilesQuery {
 	/**
 	 * @var RootDir[]
 	 */
+	private $_cachedRootDirs;
+	/**
+	 * @var RootDir[]
+	 */
 	private $_cachedQueryRootDirs;
+
+	/**
+	 * @var ChildDir[]
+	 */
+	private $_cachedChildDirs;
 	/**
 	 * @var ChildDir[]
 	 */
@@ -114,13 +124,9 @@ class FilesQuery {
 	}
 
 	public function reset() {
-		$this->_cachedQueryRootDirs = null;
-		$this->_currentQueryChildren = array();
-
-		$this->_cachedPaths = null;
-		$this->_cachedPathsSimple = null;
-		$this->_cachedRawPaths = null;
-		$this->_cachedRawPathsSimple = null;
+		$this->_clearRootDirCache();
+		$this->_clearChildDirCache();
+		$this->_clearPathCache();
 
 		$this->requirements()->removeAll();
 		$this->filters(self::FILTER_EXISTING, false);
@@ -129,6 +135,20 @@ class FilesQuery {
 		$this->_reverse = false;
 		$this->_hasRun = false;
 		$this->_queryError = null;
+	}
+	protected function _clearRootDirCache() {
+		$this->_cachedQueryRootDirs = null;
+	}
+	protected function _clearChildDirCache() {
+		$this->_cachedQueryChildDirs = null;
+	}
+	protected function _clearPathCache() {
+		$this->_currentQueryChildren = array();
+
+		$this->_cachedPaths = null;
+		$this->_cachedPathsSimple = null;
+		$this->_cachedRawPaths = null;
+		$this->_cachedRawPathsSimple = null;
 	}
 	public function resetSelection() {
 		$this->getRootDirSelection()->reset();
@@ -256,21 +276,30 @@ class FilesQuery {
 
 	/**
 	 * @param string $fileName The name of the file the query will be executing
+	 * @param bool $throwExceptions
+	 * @throws \Exception
 	 * @return bool
 	 */
-	public function run($fileName) {
-		if ($this->files()->totalRootDirs() === 0) {
+	public function run($fileName, $throwExceptions = false) {
+		$files = $this->files();
+		if ($files->totalRootDirs() === 0) {
 			throw new FileQueryException(sprintf('Query is trying to run with file "%s" but no root directories are configured. Make sure sure you have added at least one root directory with Files::addRootDir() before you run a query', $fileName));
 		}
 
-		$this->_queriedFileName = $fileName;
+		$this->_clearPathCache();
 
-		if ($this->getRootDirSelection()->isInvalidated()) {
-			$this->_cachedQueryRootDirs;
+		$currentRootDirs = $files->rootDirs();
+		if (!Dirs::equalDirs($this->_cachedRootDirs, $currentRootDirs) || $this->getRootDirSelection()->isInvalidated()) {
+			$this->_clearRootDirCache();
 		}
-		if ($this->getChildDirSelection()->isInvalidated()) {
-			$this->_cachedQueryChildren;
+		$this->_cachedRootDirs = $currentRootDirs;
+		$currentChildDirs = $files->childDirs();
+		if (!Dirs::equalDirs($this->_cachedChildDirs, $currentChildDirs) || $this->getChildDirSelection()->isInvalidated()) {
+			$this->_clearChildDirCache();
 		}
+		$this->_cachedChildDirs = $currentChildDirs;
+
+		$this->_queriedFileName = $fileName;
 		$rootDirsSelection = $this->_getCachedRootDirSelection();
 
 		$this->_currentQueryChildren = array();
@@ -281,6 +310,9 @@ class FilesQuery {
 		$meetsRequirements = $this->requirements()->meetsRequirements(false);
 		if ($meetsRequirements !== true) {
 			$this->_queryError = $meetsRequirements;
+			if ($throwExceptions === true) {
+				throw new $this->_queryError;
+			}
 		}
 		return $this->_queryError === null;
 	}

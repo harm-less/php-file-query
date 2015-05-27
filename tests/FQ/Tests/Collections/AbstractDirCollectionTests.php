@@ -3,6 +3,7 @@
 namespace FQ\Tests\Collections;
 
 use FQ\Collections\DirCollection;
+use FQ\Dirs\Dir;
 use FQ\Tests\AbstractFQTest;
 
 class AbstractDirCollectionTests extends AbstractFQTest {
@@ -11,6 +12,7 @@ class AbstractDirCollectionTests extends AbstractFQTest {
 
 	protected function setUp()
 	{
+		parent::setUp();
 		// Create a new FQ app,
 		// since we need one pretty much everywhere
 		$this->_dirCollection = $this->_createNewDirCollection();
@@ -30,7 +32,7 @@ class AbstractDirCollectionTests extends AbstractFQTest {
 		return new DirCollection();
 	}
 
-	protected function _addDirToCollection($dir = null, $index = null) {
+	protected function _addDirToCollection(Dir $dir = null, $index = null) {
 		$dir = $dir === null ? $this->_createNewDir() : $dir;
 		$collection = $this->dirCollection();
 		return $collection->addDir($dir, $index);

@@ -177,6 +177,15 @@ class FilesQueryTest extends AbstractFilesQueryTests {
 		$this->assertNotNull($query->queryError());
 	}
 
+	public function testRunQueryWhenRequirementsAreNotMetAndThrowErrorsIsSetToTrue() {
+		$this->setExpectedException('FQ\Exceptions\FileQueryRequirementsException');
+		$query = $this->query();
+		$query->requirements()->addRequirement(FilesQueryRequirements::REQUIRE_ALL);
+		$rootDir = $this->_newFictitiousRootDir(false);
+		$this->files()->addRootDir($rootDir);
+		$this->runQuery('File2', true);
+	}
+
 	public function testRunQueryWhenNoRootDirsAreSet() {
 		$this->setExpectedException('FQ\Exceptions\FileQueryException', 'Query is trying to run with file "File2" but no root directories are configured. Make sure sure you have added at least one root directory with Files::addRootDir() before you run a query');
 		$this->files()->removeAllRootDirs();
@@ -196,6 +205,17 @@ class FilesQueryTest extends AbstractFilesQueryTests {
 		$this->runQuery();
 		$query->load();
 		$this->assertTrue(class_exists('File2'));
+	}
+	public function testRunQueryTwice() {
+		$query = $this->query();
+
+		$this->runQuery();
+		$query->load();
+		$this->assertTrue(class_exists('File2'));
+
+		$this->runQuery('File1');
+		$query->load();
+		$this->assertTrue(class_exists('File1'));
 	}
 
 	public function testListPathsWhenQueryHasNotRan() {

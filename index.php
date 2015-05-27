@@ -13,6 +13,10 @@ pr($sampleSimple->queryFile1InReverse());
 pr($sampleSimple->queryNonExistingFileWithRequirementOne());
 pr($sampleSimple->queryNonExistingFileWithRequirementLast());
 pr($sampleSimple->queryNonExistingFileWithRequirementAll());
+pr($sampleSimple->executeQueryChild1());
+pr($sampleSimple->executeQueryChild1());
+pr($sampleSimple->executeQueryChild1('File2'));
+pr($sampleSimple->executeQueryChild1());
 
 
 function pr($var) {
