@@ -325,13 +325,23 @@ class FilesQuery {
 		return $queryChild;
 	}
 
-	public function load() {
+	/**
+	 * @param int $maxFiles
+	 * @return bool
+	 */
+	public function load($maxFiles = 0) {
 		$this->_hasRunCheck();
 
 		if ($this->queryHasFilter(FilesQuery::FILTER_EXISTING)) {
+			$filesLoaded = 0;
 			foreach ($this->listPathsSimple() as $path) {
 				/** @noinspection PhpIncludeInspection */
 				require_once $path;
+
+				$filesLoaded++;
+				if ($maxFiles > 0 && $filesLoaded >= $maxFiles) {
+					break;
+				}
 			}
 			return true;
 		}

@@ -23,7 +23,7 @@ class DirCollection {
 		if (is_int($index) && $totalDirs < $index) {
 			throw new DirCollectionException(sprintf('Trying to add dir, but the provided index of "%s" is to high. There are currently %s dirs.', $index, $totalDirs));
 		}
-		array_splice($this->_dirs, $index === null ? $totalDirs - 1 : $index, 0, array($dir));
+		array_splice($this->_dirs, $index === null ? $totalDirs : $index, 0, array($dir));
 		return $dir;
 	}
 

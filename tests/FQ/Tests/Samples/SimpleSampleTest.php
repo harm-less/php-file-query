@@ -33,14 +33,14 @@ class SimpleSampleTest extends AbstractSampleTest {
 		$index = 0;
 		foreach ($paths as $rootDirId => $childPaths) {
 			if ($index === 0) {
-				$this->assertEquals(self::ROOT_DIR_DEFAULT_ID, $rootDirId);
-				$this->assertEquals($this->sample()->root() . 'root1/child2/File1.php', $childPaths[0]);
-				$this->assertEquals($this->sample()->root() . 'root1/child1/File1.php', $childPaths[1]);
+				$this->assertEquals(self::ROOT_DIR_SECOND_ID, $rootDirId);
+				$this->assertEquals($this->sample()->root() . 'root2/child1/File1.php', $childPaths[0]);
+				$this->assertEquals($this->sample()->root() . 'root2/child2/File1.php', $childPaths[1]);
 			}
 			else if ($index === 1) {
-				$this->assertEquals(self::ROOT_DIR_SECOND_ID, $rootDirId);
-				$this->assertEquals($this->sample()->root() . 'root2/child2/File1.php', $childPaths[0]);
-				$this->assertEquals($this->sample()->root() . 'root2/child1/File1.php', $childPaths[1]);
+				$this->assertEquals(self::ROOT_DIR_DEFAULT_ID, $rootDirId);
+				$this->assertEquals($this->sample()->root() . 'root1/child1/File1.php', $childPaths[0]);
+				$this->assertEquals($this->sample()->root() . 'root1/child2/File1.php', $childPaths[1]);
 			}
 			$index++;
 		}

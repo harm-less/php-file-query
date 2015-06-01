@@ -204,7 +204,7 @@ class FilesQueryRequirements {
 		$lastRootDirId = null;
 		$rootSelection = $query->getCurrentRootDirSelection();
 		if (count($rootSelection) >= 1) {
-			$lastRootDirId = $rootSelection[0]->id();
+			$lastRootDirId = $rootSelection[count($rootSelection) - 1]->id();
 
 			foreach ($query->queryChildDirs(true) as $child) {
 				$pathExist = $child->pathsExist();

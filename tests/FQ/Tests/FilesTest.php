@@ -224,7 +224,7 @@ class FilesTest extends AbstractFQTest {
 		$this->_addRootDir();
 		$this->_addRootDir(null, $this->_newActualRootDirSecond());
 		$this->_addChildDir();
-		$this->assertEquals(self::ROOT_DIR_SECOND_ABSOLUTE_PATH . '/child1/File1.php', $files->queryPath('File1'));
+		$this->assertEquals(self::ROOT_DIR_DEFAULT_ABSOLUTE_PATH . '/child1/File1.php', $files->queryPath('File1'));
 		$this->assertFalse($files->queryPath('does-not-exist'));
 	}
 	public function testQueryPathWithTwoRootDirsWhenReversed() {
@@ -232,7 +232,7 @@ class FilesTest extends AbstractFQTest {
 		$this->_addRootDir();
 		$this->_addRootDir(null, $this->_newActualRootDirSecond());
 		$this->_addChildDir();
-		$this->assertEquals(self::ROOT_DIR_DEFAULT_ABSOLUTE_PATH . '/child1/File1.php', $files->queryPath('File1', null, null, true));
+		$this->assertEquals(self::ROOT_DIR_SECOND_ABSOLUTE_PATH . '/child1/File1.php', $files->queryPath('File1', null, null, true));
 		$this->assertFalse($files->queryPath('does-not-exist'));
 	}
 
