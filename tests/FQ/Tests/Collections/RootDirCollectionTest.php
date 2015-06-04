@@ -65,4 +65,9 @@ class RootDirCollectionTest extends AbstractDirCollectionTests {
 		$dir = $this->_addDirToCollection();
 		$this->assertEquals($dir, $this->dirCollection()->getDirByIndex(0));
 	}
+
+	public function testGetBasePaths() {
+		$this->_addDirToCollection();
+		$this->assertEquals(array(self::ROOT_DIR_DEFAULT_BASE_PATH), $this->dirCollection()->getBasePaths());
+	}
 }

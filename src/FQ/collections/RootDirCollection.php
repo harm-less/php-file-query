@@ -62,4 +62,15 @@ class RootDirCollection extends DirCollection {
 	public function dirs() {
 		return parent::dirs();
 	}
+
+	/**
+	 * @return string[]
+	 */
+	public function getBasePaths() {
+		$paths = array();
+		foreach ($this->dirs() as $dir) {
+			$paths[] = $dir->basePath();
+		};
+		return $paths;
+	}
 }
