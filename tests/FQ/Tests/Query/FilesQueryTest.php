@@ -198,6 +198,12 @@ class FilesQueryTest extends AbstractFilesQueryTests {
 		$query->load();
 		$this->assertTrue(class_exists('File2'));
 	}
+	public function testRunQueryAndLoadJustOneFileAfterwards() {
+		$query = $this->query();
+		$this->runQuery('File1');
+		$query->load(1);
+		$this->assertTrue(class_exists('File2'));
+	}
 	public function testRunQueryAndLoadFileAfterwardsButFails() {
 		$this->setExpectedException('FQ\Exceptions\FileQueryException', 'Loading files requires the filter "existing"');
 		$query = $this->query();
