@@ -43,7 +43,7 @@ class Files {
 	/**
 	 * @return RootDirCollection
 	 */
-	protected function _rootCollection() {
+	public function rootCollection() {
 		return $this->_rootDirCollection;
 	}
 
@@ -53,7 +53,7 @@ class Files {
 	 * @return RootDir|false
 	 */
 	public function addRootDir(RootDir $rootDir, $index = null) {
-		$rootDir = $this->_rootCollection()->addRootDir($rootDir, $index);
+		$rootDir = $this->rootCollection()->addRootDir($rootDir, $index);
 		return $this->isValid() === true ? $rootDir : false;
 	}
 
@@ -62,31 +62,31 @@ class Files {
 	 * @return bool
 	 */
 	public function removeRootDir(RootDir $rootDir) {
-		return $this->_rootCollection()->removeDir($rootDir);
+		return $this->rootCollection()->removeDir($rootDir);
 	}
 	/**
 	 * @param string $id
 	 * @return bool
 	 */
 	public function removeRootDirById($id) {
-		return $this->_rootCollection()->removeDirById($id);
+		return $this->rootCollection()->removeDirById($id);
 	}
 	/**
 	 * @param int $index
 	 * @return bool
 	 */
 	public function removeRootDirAtIndex($index) {
-		return $this->_rootCollection()->removeDirAtIndex($index);
+		return $this->rootCollection()->removeDirAtIndex($index);
 	}
 	public function removeAllRootDirs() {
-		$this->_rootCollection()->removeAllDirs();
+		$this->rootCollection()->removeAllDirs();
 	}
 
 	/**
 	 * @return RootDir[]
 	 */
 	public function rootDirs() {
-		return $this->_rootCollection()->dirs();
+		return $this->rootCollection()->dirs();
 	}
 
 	/**
@@ -94,14 +94,14 @@ class Files {
 	 * @return bool Returns true if RootDir is part of this files instance
 	 */
 	public function containsRootDir(RootDir $rootDir) {
-		return $this->_rootCollection()->isInCollection($rootDir);
+		return $this->rootCollection()->isInCollection($rootDir);
 	}
 
 	/**
 	 * @return int Total root directories
 	 */
 	public function totalRootDirs() {
-		return $this->_rootCollection()->totalDirs();
+		return $this->rootCollection()->totalDirs();
 	}
 
 	/**
@@ -109,7 +109,7 @@ class Files {
 	 * @return RootDir|null
 	 */
 	public function getRootDir($rootDir) {
-		return $this->_rootCollection()->getDir($rootDir);
+		return $this->rootCollection()->getDir($rootDir);
 	}
 
 	/**
@@ -117,7 +117,7 @@ class Files {
 	 * @return null|RootDir
 	 */
 	public function getRootDirById($id) {
-		return $this->_rootCollection()->getDirById($id);
+		return $this->rootCollection()->getDirById($id);
 	}
 
 	/**
@@ -125,14 +125,14 @@ class Files {
 	 * @return RootDir|false
 	 */
 	public function getRootDirByIndex($index) {
-		return $this->_rootCollection()->getDirByIndex($index);
+		return $this->rootCollection()->getDirByIndex($index);
 	}
 
 	/**
 	 * @return string[]
 	 */
 	public function getRootPaths() {
-		return $this->_rootCollection()->getPaths();
+		return $this->rootCollection()->getPaths();
 	}
 
 
@@ -140,7 +140,7 @@ class Files {
 	/**
 	 * @return ChildDirCollection
 	 */
-	protected function _childCollection() {
+	public function childCollection() {
 		return $this->_childDirCollection;
 	}
 
@@ -150,7 +150,7 @@ class Files {
 	 * @return ChildDir|false
 	 */
 	public function addChildDir(ChildDir $childDir, $index = null) {
-		$childDir = $this->_childCollection()->addChildDir($childDir, $index);
+		$childDir = $this->childCollection()->addChildDir($childDir, $index);
 		return $this->isValid() === true ? $childDir : false;
 	}
 
@@ -159,31 +159,31 @@ class Files {
 	 * @return bool
 	 */
 	public function removeChildDir(ChildDir $childDir) {
-		return $this->_childCollection()->removeDir($childDir);
+		return $this->childCollection()->removeDir($childDir);
 	}
 	/**
 	 * @param string $id
 	 * @return bool
 	 */
 	public function removeChildDirById($id) {
-		return $this->_childCollection()->removeDirById($id);
+		return $this->childCollection()->removeDirById($id);
 	}
 	/**
 	 * @param int $index
 	 * @return bool
 	 */
 	public function removeChildDirAtIndex($index) {
-		return $this->_childCollection()->removeDirAtIndex($index);
+		return $this->childCollection()->removeDirAtIndex($index);
 	}
 	public function removeAllChildDirs() {
-		$this->_childCollection()->removeAllDirs();
+		$this->childCollection()->removeAllDirs();
 	}
 
 	/**
 	 * @return ChildDir[]
 	 */
 	public function childDirs() {
-		return $this->_childCollection()->dirs();
+		return $this->childCollection()->dirs();
 	}
 
 	/**
@@ -191,14 +191,14 @@ class Files {
 	 * @return bool Returns true if dir is part of this files instance
 	 */
 	public function containsChildDir(ChildDir $childDir) {
-		return $this->_childCollection()->isInCollection($childDir);
+		return $this->childCollection()->isInCollection($childDir);
 	}
 
 	/**
 	 * @return int Total child directories
 	 */
 	public function totalChildDirs() {
-		return $this->_childCollection()->totalDirs();
+		return $this->childCollection()->totalDirs();
 	}
 
 	/**
@@ -206,7 +206,7 @@ class Files {
 	 * @return null|ChildDir
 	 */
 	public function getChildDir($childDir) {
-		return $this->_childCollection()->getDir($childDir);
+		return $this->childCollection()->getDir($childDir);
 	}
 
 	/**
@@ -214,7 +214,7 @@ class Files {
 	 * @return null|ChildDir
 	 */
 	public function getChildDirById($id) {
-		return $this->_childCollection()->getDirById($id);
+		return $this->childCollection()->getDirById($id);
 	}
 
 	/**
@@ -222,14 +222,14 @@ class Files {
 	 * @return ChildDir|false
 	 */
 	public function getChildDirByIndex($index) {
-		return $this->_childCollection()->getDirByIndex($index);
+		return $this->childCollection()->getDirByIndex($index);
 	}
 
 	/**
 	 * @return string[]
 	 */
 	public function getChildPaths() {
-		return $this->_childCollection()->getPaths();
+		return $this->childCollection()->getPaths();
 	}
 
 	/**
