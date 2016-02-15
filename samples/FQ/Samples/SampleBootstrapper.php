@@ -10,7 +10,7 @@ class SampleBootstrapper extends Files {
 
 	function __construct($sampleDir) {
 		parent::__construct();
-		$this->_root = __DIR__ . '\\' . $sampleDir . '\\';
+		$this->_root = __DIR__ . '/' . $sampleDir . '/';
 	}
 
 	public function root() {
