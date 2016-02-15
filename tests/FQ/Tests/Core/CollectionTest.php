@@ -43,7 +43,8 @@ class CollectionTest extends AbstractFQTest {
 	}
 
 	public function testAddTwoItems() {
-		$this->collection()->addItems(array('item1', 'item2'));
+		$this->collection()->addItem('item1');
+		$this->collection()->addItem('item2');
 		$this->assertEquals(2, $this->collection()->count());
 	}
 
@@ -65,7 +66,8 @@ class CollectionTest extends AbstractFQTest {
 	}
 
 	public function testRemoveAll() {
-		$this->collection()->addItems(array('item1', 'item2'));
+		$this->collection()->addItem('item1');
+		$this->collection()->addItem('item2');
 		$this->collection()->removeAll();
 		$this->assertEquals(0, $this->collection()->count());
 	}

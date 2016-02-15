@@ -6,19 +6,12 @@ use FQ\Exceptions\CallableCollectionException;
 
 class CallableCollection extends Collection {
 
-	/**
-	 * @var callable[] Array of callable functions
-	 */
-	private $_callableMethods;
-
 	function __construct() {
 		parent::__construct();
-
-		$this->_callableMethods = array();
 	}
 
 	public function callableMethods() {
-		return $this->_callableMethods;
+		return $this->collection();
 	}
 
 	/**
@@ -37,7 +30,7 @@ class CallableCollection extends Collection {
 		if (!is_callable($callable)) {
 			throw new CallableCollectionException(sprintf('Trying to register a callable item but the value doesn\'t seem callable. Trying method "%s" from class "%s"', $callable[1], get_class($callable[0])));
 		}
-		$this->_callableMethods[$id] = $callable;
+		$this->addAssociatedItem($id, $callable);
 		return true;
 	}
 
@@ -59,6 +52,6 @@ class CallableCollection extends Collection {
 		if (!$this->callableIsRegistered($id)) {
 			throw new CallableCollectionException(sprintf('Trying to call a callable, but it isn\'t registered. Provided callable id "%s"', $id), 10);
 		}
-		return call_user_func_array($this->_callableMethods[$id], (array) $parameters);
+		return call_user_func_array($this->getItemById($id), (array) $parameters);
 	}
 }

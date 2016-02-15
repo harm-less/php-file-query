@@ -1,6 +1,6 @@
 <?php
 
-namespace FQ\Tests\Dirs;
+namespace FQ\Tests\Query;
 
 use FQ\Query\FilesQuery;
 use FQ\Tests\AbstractFQTest;

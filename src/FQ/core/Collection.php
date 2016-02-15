@@ -22,16 +22,6 @@ class Collection {
 	}
 
 	/**
-	 * @param mixed[] $items
-	 */
-	public function addItems($items) {
-		$items = (array) $items;
-		foreach ($items as $item) {
-			$this->addItem($item);
-		}
-	}
-
-	/**
 	 * @param mixed $item
 	 * @return bool Return true when added. Returns false when it was already part of the collection
 	 */
@@ -39,6 +29,30 @@ class Collection {
 		if (!$this->hasItem($item)) {
 			$this->_collection[] = $item;
 			return true;
+		}
+		return false;
+	}
+
+	/**
+	 * @param string $id
+	 * @param mixed $item
+	 * @return bool Return true when added. Returns false when it was already part of the collection either by id or item
+	 */
+	public function addAssociatedItem($id, $item) {
+		if (!$this->hasItem($item) && !isset($this->_collection[$id])) {
+			$this->_collection[$id] = $item;
+			return true;
+		}
+		return false;
+	}
+
+	/**
+	 * @param string $id
+	 * @return mixed Returns the value with it was registered. Returns false when it wasn't found
+	 */
+	public function getItemById($id) {
+		if (isset($this->_collection[$id])) {
+			return $this->_collection[$id];
 		}
 		return false;
 	}

@@ -2,20 +2,12 @@
 
 namespace FQ\Query;
 
+use FQ\Core\CallableCollection;
+use FQ\Exceptions\CallableCollectionException;
 use FQ\Exceptions\FileQueryException;
 use FQ\Exceptions\FileQueryRequirementsException;
 
-class FilesQueryRequirements {
-
-	/**
-	 * @var string[] Requirements of the query
-	 */
-	private $_requirements;
-
-	/**
-	 * @var callable[] Array of callable function that check against certain
-	 */
-	private $_registeredRequirements;
+class FilesQueryRequirements extends CallableCollection {
 
 	/**
 	 * Constants determining requirement checking for the query
@@ -25,6 +17,7 @@ class FilesQueryRequirements {
 	const LEVELS_ALL = 'levels_all';
 
 	function __construct() {
+		parent::__construct();
 		$this->registerRequirement(self::LEVELS_ONE, array($this, 'requirementAtLeastOne'));
 		$this->registerRequirement(self::LEVELS_LAST, array($this, 'requirementLast'));
 		$this->registerRequirement(self::LEVELS_ALL, array($this, 'requirementAll'));
@@ -34,7 +27,7 @@ class FilesQueryRequirements {
 	 * @return null|mixed[]
 	 */
 	public function requirements() {
-		return $this->_requirements;
+		return $this->collection();
 	}
 
 	/**
@@ -53,17 +46,10 @@ class FilesQueryRequirements {
 	 * @return bool Return true when added. Returns false when it was already part of the requirements
 	 */
 	public function addRequirement($requirement) {
-		if (!is_string($requirement) || !is_int($requirement)) {
-			throw new FileQueryException(sprintf('A requirement van only be of type integer or string. Provided requirement is of type "%s"', gettype($requirement)));
-		}
 		if (!$this->requirementIsRegistered($requirement)) {
 			throw new FileQueryException(sprintf('Trying to add a requirement, but it isn\'t registered. Provided requirement "%s"', $requirement));
 		}
-		if (!$this->hasRequirement($requirement)) {
-			$this->_requirements[] = $requirement;
-			return true;
-		}
-		return false;
+		return $this->addItem($requirement);
 	}
 
 	/**
@@ -71,18 +57,7 @@ class FilesQueryRequirements {
 	 * @return bool Return true when added. Returns false when it was already part of the requirements
 	 */
 	public function removeRequirement($requirement) {
-		if ($this->hasRequirement($requirement)) {
-			unset($this->_requirements[array_search($requirement, $this->_requirements)]);
-			return true;
-		}
-		return false;
-	}
-
-	/**
-	 * Remove all file query requirements
-	 */
-	public function removeAll() {
-		$this->_requirements = array();
+		return $this->removeItem($requirement);
 	}
 
 	/**
@@ -92,7 +67,7 @@ class FilesQueryRequirements {
 	 * @return bool
 	 */
 	public function hasRequirement($requirement) {
-		return in_array($requirement, $this->requirements());
+		return $this->hasItem($requirement);
 	}
 
 	/**
@@ -101,8 +76,7 @@ class FilesQueryRequirements {
 	 * @return bool Returns true if there is at least one requirement, otherwise it will return false
 	 */
 	public function hasRequirements() {
-		$requirements = $this->requirements();
-		return count($requirements) === 0;
+		return $this->hasItems();
 	}
 
 	/**
@@ -110,34 +84,53 @@ class FilesQueryRequirements {
 	 * @return bool Returns true if the requirement is registered. Otherwise it returns false
 	 */
 	public function requirementIsRegistered($requirement) {
-		return array_key_exists($requirement, $this->_registeredRequirements);
+		return $this->callableIsRegistered($requirement);
 	}
 
 	/**
 	 * @param string $id
 	 * @param callable $callable
 	 * @return bool
-	 * @throws FileQueryRequirementsException
+	 * @throws CallableCollectionException
 	 */
 	public function registerRequirement($id, $callable) {
-		if (!is_callable($callable, true)) {
-			throw new FileQueryRequirementsException(sprintf('Trying to register a requirement but the requirement isn\'t callable. Info "%s"', implode(', ', (array) $callable)));
-		}
-		$this->_registeredRequirements[$id] = $callable;
-		return true;
+		return $this->registerCallable($id, $callable);
 	}
 
 	/**
 	 * @param string $id
 	 * @param FilesQueryChild $child
-	 * @throws FileQueryException
+	 * @throws CallableCollectionException
 	 * @return mixed
 	 */
 	public function tryRequirement($id, FilesQueryChild $child) {
-		if ($this->requirementIsRegistered($id)) {
-			throw new FileQueryException(sprintf('Trying to call a requirement, but it isn\'t registered. Provided requirement "%s"', $id), 10);
+		return $this->tryCallable($id, $child);
+	}
+
+	/**
+	 * Checks if the query meets all its requirements
+	 *
+	 * @param FilesQueryChild $queryChild
+	 * @param bool $throwExceptionOnFail
+	 * @throws \Exception
+	 * @return mixed Returns true if all requirements are met. Otherwise returns an un-thrown exception if 'throwExceptionOnFail' is set to false or the response from the requirement
+	 */
+	public function meetsRequirements(FilesQueryChild $queryChild, $throwExceptionOnFail = true) {
+		// if there are no requirements it certainly is valid and it can be returned immediately
+		if (!$this->hasRequirements()) {
+			return true;
 		}
-		return call_user_func($this->_registeredRequirements[$id], $child);
+
+		foreach ($this->requirements() as $requirement) {
+			$attempt = $this->tryRequirement($requirement, $queryChild);
+			if ($attempt instanceof \Exception && $throwExceptionOnFail === true) {
+				throw $attempt;
+			}
+			else if ($attempt !== true ) {
+				return $attempt;
+			}
+		}
+		return true;
 	}
 
 	/**
@@ -170,32 +163,6 @@ class FilesQueryRequirements {
 	protected function requirementAll(FilesQueryChild $child) {
 		if ($child->totalExistingPaths() != $child->files()->totalRootDirs()) {
 			return new FileQueryException(sprintf('All "%s" children must contain a file called "%s".', $child->childDir()->id(), $child->relativePath()));
-		}
-		return true;
-	}
-
-	/**
-	 * Checks if the query meets all its requirements
-	 *
-	 * @param FilesQueryChild $queryChild
-	 * @param bool $throwExceptionOnFail
-	 * @throws \Exception
-	 * @return mixed Returns true if all requirements are met. Otherwise returns an un-thrown exception if 'throwExceptionOnFail' is set to false or the response from the requirement
-	 */
-	public function meetsRequirements(FilesQueryChild $queryChild, $throwExceptionOnFail = true) {
-		// if there are no requirements it certainly is valid and it can be returned immediately
-		if (!$this->hasRequirements()) {
-			return true;
-		}
-
-		foreach ($this->requirements() as $requirement) {
-			$attempt = $this->tryRequirement($requirement, $queryChild);
-			if ($attempt instanceof \Exception && $throwExceptionOnFail === true) {
-				throw $attempt;
-			}
-			else if ($attempt !== true ) {
-				return $attempt;
-			}
 		}
 		return true;
 	}
