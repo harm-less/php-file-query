@@ -3,6 +3,7 @@
 namespace FQ\Tests\Collections;
 
 use FQ\Collections\RootDirCollection;
+use FQ\Dirs\Dir;
 
 class RootDirCollectionTest extends AbstractDirCollectionTests {
 
@@ -27,7 +28,7 @@ class RootDirCollectionTest extends AbstractDirCollectionTests {
 		return $this->_newActualRootDir();
 	}
 
-	protected function _addDirToCollection($dir = null, $index = null) {
+	protected function _addDirToCollection(Dir $dir = null, $index = null) {
 		$dir = $dir === null ? $this->_createNewDir() : $dir;
 		$collection = $this->dirCollection();
 		return $collection->addRootDir($dir, $index);
